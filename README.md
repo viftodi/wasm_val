@@ -18,6 +18,27 @@ This project is dual licenced under Apache 2 and the MIT license.
 
 For more details check the LICENCE.md file
 
+## Features
+
+It is currently possible to do the following:
+ - Obtain global values from the javascript context
+ - Get and Set values from rust on javascript objects
+ - Call a function with zero or one argument
+
+
+The following types can be passed from javascript to rust/wasm :
+ - Null/Undefined
+ - Boolean
+ - Number
+ - String
+ - Object
+
+ The following types can be currently passed from rust to javascript and be properly interpreted in javascript:
+
+ - bool
+ - i8 and u8
+ - str
+
 ## Get started
 
 The project has two parts: wasm-val the rust library that provides the API and wasm-val-module which is the javascript counterpart that does the proper serialization.
@@ -73,7 +94,7 @@ Assuming you're in the folder where your web-app resides.
 Firstly either install the wasm-val-module using npm
 
 ```bash
-npm install wasm_val_module@0.1.0
+npm install wasm_val_module@0.1.1
 
 ```
 
