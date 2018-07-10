@@ -1,0 +1,17 @@
+[package]
+name = "wasm_val"
+version = "0.1.0"
+authors = ["Vladimir Iftodi <Vladimir.Iftodi@gmail.com>"]
+description = "Library that provides a typesafe API to call javascript from a wasm program"
+homepage = "https://github.com/viftodi/wasm_val"
+repository = "https://github.com/viftodi/wasm_val"
+license = "MIT/Apache-2.0"
+keywords = ["wasm", "javascript", "polyglot"]
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+num-traits = "0.2.5"
+num-derive = "0.2.2"
+byteorder = "1.2.3"

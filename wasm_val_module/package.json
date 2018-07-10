@@ -1,0 +1,15 @@
+{
+  "name": "wasm_val_module",
+  "version": "0.1.1",
+  "description": "Companion package for the rust wasm-val crate",
+  "main": "wasm_val_module.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "wasm",
+    "rust"
+  ],
+  "author": "Vladimir Iftodi <Vladimir.Iftodi@gmail.com>",
+  "license": "SEE LICENSE IN LICENSE"
+}
