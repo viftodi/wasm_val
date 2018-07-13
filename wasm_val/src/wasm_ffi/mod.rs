@@ -8,7 +8,7 @@
 
 mod js_exports;
 
-const SINGLE_VAL_VEC_LEN: usize = 9 as usize; // 1 byte tag and at most another 8 bytes for a number/f64 or 2 pointers
+pub const SINGLE_VAL_VEC_LEN: usize = 9 as usize; // 1 byte tag and at most another 8 bytes for a number/f64 or 2 pointers
 
 pub fn get_val_global(name: &str) -> Vec<u8> {
     let ptr = unsafe { js_exports::get_val_global(name.len() as u32, name.as_ptr()) as *mut u8 };

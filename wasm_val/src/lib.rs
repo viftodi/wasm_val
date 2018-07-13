@@ -50,11 +50,6 @@ impl JsValue {
      fn  get_single_val(vec: Vec<u8>) -> JsValue {
         let mut curs = Cursor::new(vec);
         let tag = curs.read_u8().unwrap();
-
-        let s = format!("Got the  tag {}", tag);
-
-        wasm_ffi::get_val_global(&s);
-
         let type_tag = TypeTag::from_u8(tag).unwrap();
 
         match type_tag {
@@ -100,7 +95,7 @@ impl JsValue {
     pub fn set_val<S>(&self, name: &str, val: S) -> () where S: JsSerializable {
         match self.val {
             Val::Ref(ref_id) => {
-                let mut vec = Vec::with_capacity(9);
+                let mut vec = Vec::with_capacity(wasm_ffi::SINGLE_VAL_VEC_LEN);
                 let mut cursor = Cursor::new(vec);
 
                 val.ser(&mut cursor);
