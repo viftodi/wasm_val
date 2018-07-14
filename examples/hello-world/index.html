@@ -7,7 +7,10 @@
         import { WasmValModule } from "/node_modules/wasm_val_module/wasm_val_module.js";
 
         const mod = new WasmValModule('rust_wasm/target/wasm32-unknown-unknown/release/wasm_hello_world.wasm', window);
-        mod.run();
+        mod.run()
+            .then((instance) => {
+                instance.exports.main();
+            });
 
     </script>
 

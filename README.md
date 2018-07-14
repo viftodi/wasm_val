@@ -23,7 +23,7 @@ For more details check the LICENCE.md file
 It is currently possible to do the following:
  - Obtain global values from the javascript context
  - Get and Set values from rust on javascript objects
- - Call a function with zero or one argument
+ - Call a function with zero or one arguments
 
 
 The following types can be passed from javascript to rust/wasm :
@@ -33,10 +33,10 @@ The following types can be passed from javascript to rust/wasm :
  - String
  - Object
 
- The following types can be currently passed from rust to javascript and be properly interpreted in javascript:
+ The following types can be currently passed from rust to javascript and be properly deserialized in javascript:
 
  - bool
- - i8 and u8
+ - rust primitive numeric types (except i64/u64)
  - str
 
 ## Get started
@@ -49,7 +49,7 @@ Add the wasm_val depencendy to your Cargo.toml
 
 ```toml
 [dependencies]
-wasm_val = "0.1.0"
+wasm_val = "0.1.1"
 ```
 
 It is also important to also declare your rust project type as cdylib.
@@ -73,11 +73,10 @@ pub extern crate wasm_val;
 use wasm_val::{JsValue};
 
 #[no_mangle]
-pub extern "C" fn main() -> u32 {
+pub extern "C" fn main() -> () {
     let console = JsValue::get_global("console");
 
     console.call_with_arg("log", "Hello from Rust :)");
-    return 0;
 }
 ```
 
@@ -91,10 +90,10 @@ cargo build --target=wasm32-unknown-unknown --release
 
 Assuming you're in the folder where your web-app resides.
 
-Firstly either install the wasm-val-module using npm
+Firstly either install the wasm-val-module using npm :
 
 ```bash
-npm install wasm_val_module@0.1.1
+npm install wasm_val_module@0.2.0
 
 ```
 
@@ -106,9 +105,17 @@ Then in your index.html or equivalent:
 <script type="module">
     import { WasmValModule } from "./node_modules/wasm-val-module/wasm_val_module.js";
     const mod = new WasmValModule('path/to/rust_lib.wasm', window);
-    mod.run();
+
+    mod.run()
+        .then((instance) => {
+            instance.exports.main();
+        });
 </script>
 ````
+
+The WasmValModule constructor takes the path to the wasm file as well as a context object. 
+
+The context object is what provides the accessible javascript members on the rust side.
 
 And hopefully that's it.
 
