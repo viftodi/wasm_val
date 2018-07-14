@@ -34,7 +34,6 @@ pub struct JsValue {
     val: Val,
 }
 
-
 impl Drop for JsValue {
     fn drop(&mut self) {
         match self.val {
@@ -43,7 +42,6 @@ impl Drop for JsValue {
         }
     }
 }
-
 
 impl JsValue {
 

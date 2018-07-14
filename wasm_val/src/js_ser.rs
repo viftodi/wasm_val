@@ -81,6 +81,23 @@ impl JsSerializable for u32 {
     }
 }
 
+impl JsSerializable for f32 {
+    fn size(&self) -> u8 { 5 }
+
+    fn ser(&self, cursor: &mut Cursor<Vec<u8>>) {
+        cursor.write_u8(TypeTag::F32 as u8).unwrap();
+        cursor.write_f32::<LittleEndian>(*self).unwrap();
+    }
+}
+
+impl JsSerializable for f64 {
+    fn size(&self) -> u8 { 9 }
+
+    fn ser(&self, cursor: &mut Cursor<Vec<u8>>) {
+        cursor.write_u8(TypeTag::F64 as u8).unwrap();
+        cursor.write_f64::<LittleEndian>(*self).unwrap();
+    }
+}
 
 impl<'a> JsSerializable for &'a str {
     fn size(&self) -> u8 { 9 }
