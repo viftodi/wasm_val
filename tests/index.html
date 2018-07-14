@@ -1,0 +1,29 @@
+<html>
+
+<head>
+    <title>Tests</title>
+    <link rel="stylesheet" href="/node_modules/mocha/mocha.css">
+    <script type="module" src="/node_modules/chai/chai.js"></script>
+    <script type="module" src="/node_modules/mocha/mocha.js"></script>
+    <script type="module">
+        // TODO Can be put in its own file
+        mocha.setup('bdd');
+
+        import setupTestGetThenSet from "/lib/test_get_then_set.js";
+        setupTestGetThenSet();
+
+        import setupTestSetPrimNum from "/lib/test_set_prim_num.js";
+        setupTestSetPrimNum();
+
+        import setupTestCallFunction from "/lib/test_call_fn.js";
+        setupTestCallFunction();
+
+        mocha.checkLeaks();
+        mocha.run();
+
+    </script>
+</head>
+
+<div id="mocha"></div>
+
+</html>

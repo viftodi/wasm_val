@@ -1,0 +1,11 @@
+[package]
+name = "get_then_set"
+version = "1.0.0"
+authors = ["Vladimir Iftodi <Vladimir.Iftodi@gmail.com>"]
+
+[lib]
+path = "src/lib.rs"
+crate-type = ["cdylib"]
+
+[dependencies]
+wasm_val = "0.1.1"
