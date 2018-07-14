@@ -88,11 +88,10 @@ export class Serializer {
             view_i8: view_i8,
         }
 
-
         const buff_2 = new ArrayBuffer(2);
         const view_u8_b2 = new Uint8Array(buff_2);
         const view_u16 = new Uint16Array(buff_2);
-        const view_i16 = new Uint16Array(buff_2);
+        const view_i16 = new Int16Array(buff_2);
 
         this.b16_helper = {
             buff: buff_2,
@@ -203,7 +202,6 @@ export class Serializer {
         } else {
             const type = typeof val;
 
-
             // TODO refactor using Map<typeof, write_fn>
             if (type === "boolean") {
                 this.write_bool(ptr, val);
@@ -223,6 +221,33 @@ export class Serializer {
         return this.b8_helper.view_i8[0];
     }
 
+    read_u8(ptr) {
+        return this.buff[ptr];
+    }
+
+    read_i16(ptr) {
+        const subBuff = this.buff.subarray(ptr, ptr + 2);
+
+        this.b16_helper.view_u8.set(subBuff);
+
+        return this.b16_helper.view_i16[0];
+    }
+
+    read_u16(ptr) {
+        const subBuff = this.buff.subarray(ptr, ptr + 2);
+
+        this.b16_helper.view_u8.set(subBuff);
+
+        return this.b16_helper.view_u16[0];
+    }
+
+    read_i32(ptr) {
+        const subBuff = this.buff.subarray(ptr, ptr + 4);
+
+        this.b32_helper.view_u8.set(subBuff);
+
+        return this.b32_helper.view_i32[0];
+    }
 
     read_u32(ptr) {
         const subBuff = this.buff.subarray(ptr, ptr + 4);
@@ -230,6 +255,22 @@ export class Serializer {
         this.b32_helper.view_u8.set(subBuff);
 
         return this.b32_helper.view_u32[0];
+    }
+
+    read_f32(ptr) {
+        const subBuff = this.buff.subarray(ptr, ptr + 4);
+
+        this.b32_helper.view_u8.set(subBuff);
+
+        return this.b32_helper.view_f32[0];
+    }
+
+    read_f64(ptr) {
+        const subBuff = this.buff.subarray(ptr, ptr + 8);
+
+        this.f64_helper.view_u8.set(subBuff);
+
+        return this.f64_helper.view_f64[0];
     }
 
     read_string(ptr) {
@@ -245,6 +286,8 @@ export class Serializer {
         const tag = this.buff[ptr];
         const ret = { isRef: false, val: null };
 
+        // Repetitive code
+        // TODO Can be refactored using Map<typeof string, fn read_val>
 
         if (tag === this.type_tag.BoolFalse) {
             ret.val = false;
@@ -253,7 +296,19 @@ export class Serializer {
         } else if (tag === this.type_tag.Int8) {
             ret.val = this.read_i8(ptr + 1);
         } else if (tag === this.type_tag.UInt8) {
-            ret.val = buff[ptr + 1];
+            ret.val = this.read_u8(ptr + 1);
+        } else if (tag === this.type_tag.Int16) {
+            ret.val = this.read_i16(ptr + 1);
+        } else if (tag === this.type_tag.UInt16) {
+            ret.val = this.read_u16(ptr + 1);
+        } else if (tag === this.type_tag.Int32) {
+            ret.val = this.read_i32(ptr + 1);
+        } else if (tag === this.type_tag.UInt32) {
+            ret.val = this.read_u32(ptr + 1);
+        } else if (tag === this.type_tag.F32) {
+            ret.val = this.read_f32(ptr + 1);
+        } else if(tag == this.type_tag.F64) {
+            ret.val = this.read_f64(ptr + 1);
         } else if (tag === this.type_tag.String) {
             ret.val = this.read_string(ptr + 1);
         }

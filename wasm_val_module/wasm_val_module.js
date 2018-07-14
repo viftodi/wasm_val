@@ -30,7 +30,6 @@ export class WasmValModule {
 
     }
 
-
     run() {
         return fetch(this.wasmFile)
             .then(resp => resp.arrayBuffer())
@@ -41,16 +40,11 @@ export class WasmValModule {
 
                 this.exports = exports;
                 this.memory = exports.memory;
-
                 this.rust_alloc = exports.wasm_val_rust_alloc;
-
                 this.buff_ = new Uint8Array(this.memory.buffer);
-
                 this.serializer = new Serializer(this, this.rust_alloc);
 
-                exports.main();
-
-
+                return Promise.resolve(instance);
             });
     }
 
