@@ -1,10 +1,17 @@
+// Copyright 2018 Vladimir Iftodi <Vladimir.Iftodi@gmail.com>. 
+//
+// Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
+// http://www.apache.org/licenses/LICENSE-2.0> or the MIT license
+// <LICENSE-MIT or http://opensource.org/licenses/MIT>, at your
+// option. This file may not be copied, modified, or distributed
+// except according to those terms.
+
 pub extern crate wasm_val;
 
 use wasm_val::{JsValue};
 
 #[no_mangle]
-pub extern "C" fn main() -> u32 {
-
+pub extern "C" fn main() -> () {
     let performance = JsValue::get_global("performance");
     let before = performance.call("now").unwrap().as_number().unwrap();
     let console = JsValue::get_global("console");
@@ -18,14 +25,4 @@ pub extern "C" fn main() -> u32 {
     let s1 = format!("Rust finished in about {:.2} ms", diff);
 
     console.call_with_arg("log", s1.as_str());
-
-    return 0;
-}
-
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn it_works() {
-        assert_eq!(2 + 2, 4);
-    }
 }

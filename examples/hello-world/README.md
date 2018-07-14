@@ -2,7 +2,7 @@
 In the root folder do:
 
 ```bash
-npm install wasm_val_module@0.1.1
+npm install
 ```
 
 then in the rust_wasm folder build the wasm file. For example:
