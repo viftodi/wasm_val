@@ -11,6 +11,7 @@ import { Serializer } from './wasm_val_serializer.js';
 export class WasmValModule {
 
     constructor(wasmFile, context, options, ) {
+        this.apiVersion = 1;
         this.wasmFile = wasmFile;
         this.options = options;
         this.context = context;
@@ -37,6 +38,18 @@ export class WasmValModule {
             .then(module => {
                 const instance = module.instance;
                 const exports = instance.exports;
+
+                if(!exports.wasm_val_rust_alloc || !exports.wasm_val_get_api_version) {
+                    console.error("wasm_val export functions not found : consider using 'extern crate wasm_val; in your lib.rs'");
+                    
+                    return Promise.reject("No wasm_val exports found");
+                }
+
+                if(exports.wasm_val_get_api_version() != this.apiVersion) {
+                    console.error("API version mismatch : consider using the latest versions of wasm_val as well as wasm_val_module");
+
+                    return Promise.reject("wasm_val API version mismatch");
+                }
 
                 this.exports = exports;
                 this.memory = exports.memory;
