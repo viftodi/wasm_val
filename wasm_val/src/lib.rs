@@ -25,8 +25,13 @@ use byteorder::{LittleEndian, ReadBytesExt,};
 use num_traits::FromPrimitive;
 
 #[no_mangle]
-pub extern "C" fn wasm_val_rust_alloc(capacity: u32) -> *mut u8{
+pub extern "C" fn wasm_val_rust_alloc(capacity: u32) -> *mut u8 {
     rust_exports::rust_alloc(capacity)
+}
+
+#[no_mangle]
+pub extern "C" fn wasm_val_get_api_version() -> u32 {
+    rust_exports::get_api_version()
 }
 
 pub struct JsValue {
