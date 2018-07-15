@@ -61,14 +61,14 @@ path = "src/lib.rs"
 crate-type = ["cdylib"]
 ```
 
-In your main lib.rs it is important to pub use the crate as to re-export the library's function to the javascript side.
+In your main lib.rs declare the wasm_val crate
 
-Also export an extern "C" main function with the #[no_mangle] atribute.
+Also export an extern "C" main function with the #[no_mangle] atribute so that it can be accessible from javascript.
 
 Bellow is a hello world example.
 
 ```rust
-pub extern crate wasm_val;
+extern crate wasm_val;
 
 use wasm_val::{JsValue};
 
