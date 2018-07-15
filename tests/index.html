@@ -9,6 +9,9 @@
         // TODO Can be put in its own file
         mocha.setup('bdd');
 
+        import setupTestExports from "/lib/test_exports.js";
+        setupTestExports();
+
         import setupTestGetThenSet from "/lib/test_get_then_set.js";
         setupTestGetThenSet();
 

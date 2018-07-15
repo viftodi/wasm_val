@@ -1,5 +1,5 @@
 [package]
-name = "call_fn"
+name = "no_exports"
 version = "1.0.0"
 authors = ["Vladimir Iftodi <Vladimir.Iftodi@gmail.com>"]
 
@@ -8,4 +8,3 @@ path = "src/lib.rs"
 crate-type = ["cdylib"]
 
 [dependencies]
-wasm_val = "0.1.2"
