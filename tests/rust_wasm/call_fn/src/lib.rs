@@ -33,3 +33,10 @@ pub extern "C" fn call_fn_one_arg_val() -> () {
 
     fn_container.call_with_arg("fn_one_arg_val", "a string arg");
 }
+
+#[no_mangle]
+pub extern "C" fn call_fn_two_args_val() -> () {
+    let fn_container = JsValue::get_global("fn_container");
+
+    fn_container.call_with_2_args("fn_two_args_val", 3.14, false);
+}

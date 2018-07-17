@@ -1,0 +1,33 @@
+<html>
+
+<head>
+    <title>Add element from Rust</title>
+
+    <script type="module">
+        import { WasmValModule } from "/node_modules/wasm_val_module/wasm_val_module.js";
+
+        const mod = new WasmValModule('rust_wasm/target/wasm32-unknown-unknown/release/wasm_clock.wasm', window);
+        mod.run()
+            .then((instance) => {
+                //instance.exports.main();
+
+                const animateClock = function() {
+                    instance.exports.set_time();
+
+                    requestAnimationFrame( () => animateClock());
+                }
+
+                animateClock();
+
+            });
+
+    </script>
+
+</head>
+
+<body>
+    <div>The text bellow has been created from Rust</div>
+    <div id="rust_content"></div>
+</body>
+
+</html>

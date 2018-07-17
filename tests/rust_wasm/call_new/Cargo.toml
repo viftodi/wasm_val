@@ -1,5 +1,5 @@
 [package]
-name = "call_fn"
+name = "call_new"
 version = "1.0.0"
 authors = ["Vladimir Iftodi <Vladimir.Iftodi@gmail.com>"]
 

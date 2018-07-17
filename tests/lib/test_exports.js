@@ -11,18 +11,27 @@ import getTestModule from "/lib/test_helper.js";
 export default function setupTestExports() {
 
     describe("Can handle missing wasm_val crate and API version mismatches", function () {
-        let error;
+        let error_no_export;
+        let error_bad_version;
 
         before(async () => {
             await getTestModule("no_exports", context)
-            .catch( (err) => {
-                error = err;
-            }) ;
+                .catch((err) => {
+                    error_no_export = err;
+                });
+
+            await getTestModule("old_crate_version", context)
+                .catch((err) => {
+                    error_bad_version = err;
+                });
         });
 
         it("can detect missing wasm_val crate", function () {
-            chai.expect(error).to.equal("No wasm_val exports found");
+            chai.expect(error_no_export).to.equal("No wasm_val exports found");
         });
 
+        it("can detect API version mismatch between wasm_val and wasm_val_module", function () {
+            chai.expect(error_bad_version).to.equal("wasm_val API version mismatch");
+        });
     });
 }

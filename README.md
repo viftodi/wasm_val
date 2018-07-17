@@ -49,7 +49,7 @@ Add the wasm_val depencendy to your Cargo.toml
 
 ```toml
 [dependencies]
-wasm_val = "0.1.2"
+wasm_val = "0.2.0"
 ```
 
 It is also important to also declare your rust project type as cdylib.
@@ -93,7 +93,7 @@ Assuming you're in the folder where your web-app resides.
 Firstly either install the wasm-val-module using npm :
 
 ```bash
-npm install wasm_val_module@0.2.1
+npm install wasm_val_module@0.2.2
 
 ```
 
@@ -119,4 +119,4 @@ The context object is what provides the accessible javascript members on the rus
 
 And hopefully that's it.
 
-You can check the examples folder for more insights.
+Also check the examples folder for more insights.
