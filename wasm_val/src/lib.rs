@@ -50,7 +50,7 @@ impl Drop for JsValue {
 
 impl JsValue {
 
-     fn  get_single_val(vec: Vec<u8>) -> JsValue {
+     fn get_single_val(vec: Vec<u8>) -> JsValue {
         let mut curs = Cursor::new(vec);
         let tag = curs.read_u8().unwrap();
         let type_tag = TypeTag::from_u8(tag).unwrap();
@@ -72,6 +72,11 @@ impl JsValue {
                 let ref_id = curs.read_u32::<LittleEndian>().unwrap();
 
                 JsValue{js_type: Type::Object, val: Val::Ref(ref_id)}
+            },
+            TypeTag::Function => {
+                let ref_id = curs.read_u32::<LittleEndian>().unwrap();
+
+                JsValue{js_type: Type::Function, val: Val::Ref(ref_id)}
             }
             _ => panic!()
         }
@@ -130,6 +135,54 @@ impl JsValue {
                 arg.ser(&mut cursor);
 
                 let ret_vec = wasm_ffi::call_1(ref_id, name, cursor.into_inner());
+
+                Some(JsValue::get_single_val(ret_vec))
+            },
+            _ => None
+        }
+    }
+
+    pub fn call_with_2_args<S1, S2>(&self, name: &str, arg1: S1, arg2: S2) -> Option<JsValue> where S1: JsSerializable, S2:JsSerializable {
+        match self.val {
+            Val::Ref(ref_id) => {
+                let mut vec1 = Vec::with_capacity(9);
+                let mut cursor1 = Cursor::new(vec1);
+
+                arg1.ser(&mut cursor1);
+
+                let mut vec2 = Vec::with_capacity(9);
+                let mut cursor2 = Cursor::new(vec2);
+
+                arg2.ser(&mut cursor2);
+
+                let ret_vec = wasm_ffi::call_2(ref_id, name, cursor1.into_inner(), cursor2.into_inner());
+
+                Some(JsValue::get_single_val(ret_vec))
+            },
+            _ => None
+        }
+    }
+
+    pub fn new(&self) -> Option<JsValue> {
+        match self {
+            JsValue{js_type: Type::Function, val: Val::Ref(ref_id)} => {
+                let vec = wasm_ffi::new_0(*ref_id);
+
+                Some(JsValue::get_single_val(vec))
+            },
+            _ => None,
+        }
+    }
+
+    pub fn new_with_arg<S>(&self, arg: S) -> Option<JsValue> where S: JsSerializable {
+        match self.val {
+            Val::Ref(ref_id) => {
+                let mut vec = Vec::with_capacity(9);
+                let mut cursor = Cursor::new(vec);
+
+                arg.ser(&mut cursor);
+
+                let ret_vec = wasm_ffi::new_1(ref_id, cursor.into_inner());
 
                 Some(JsValue::get_single_val(ret_vec))
             },
