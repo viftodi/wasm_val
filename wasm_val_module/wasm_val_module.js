@@ -11,7 +11,7 @@ import { Serializer } from './wasm_val_serializer.js';
 export class WasmValModule {
 
     constructor(wasmFile, context, options, ) {
-        this.apiVersion = 1;
+        this.apiVersion = 2;
         this.wasmFile = wasmFile;
         this.options = options;
         this.context = context;
@@ -22,6 +22,9 @@ export class WasmValModule {
                 set_val: this.set_val.bind(this),
                 call_0: this.call_0.bind(this),
                 call_1: this.call_1.bind(this),
+                call_2: this.call_2.bind(this),
+                new_0: this.new_0.bind(this),
+                new_1: this.new_1.bind(this),
                 drop_val: this.drop_val.bind(this),
             }
         }
@@ -39,13 +42,13 @@ export class WasmValModule {
                 const instance = module.instance;
                 const exports = instance.exports;
 
-                if(!exports.wasm_val_rust_alloc || !exports.wasm_val_get_api_version) {
+                if (!exports.wasm_val_rust_alloc || !exports.wasm_val_get_api_version) {
                     console.error("wasm_val export functions not found : consider using 'extern crate wasm_val; in your lib.rs'");
-                    
+
                     return Promise.reject("No wasm_val exports found");
                 }
 
-                if(exports.wasm_val_get_api_version() != this.apiVersion) {
+                if (exports.wasm_val_get_api_version() != this.apiVersion) {
                     console.error("API version mismatch : consider using the latest versions of wasm_val as well as wasm_val_module");
 
                     return Promise.reject("wasm_val API version mismatch");
@@ -152,7 +155,6 @@ export class WasmValModule {
         this.serializer.write_val(ptr, retVal, ref_id);
 
         return ptr;
-
     }
 
     call_1(refId, strLen, namePtr, argPtr) {
@@ -182,6 +184,67 @@ export class WasmValModule {
 
         return ptr;
 
+    }
+
+    call_2(refId, strLen, namePtr, arg1Ptr, arg2Ptr) {
+        const ref = this.refs.get(refId);
+        const nameBytes = this.buff.subarray(namePtr, namePtr + strLen);
+        const name = this.textDecoder.decode(nameBytes);
+        let fn = ref[name];
+        const ptr = this.rust_alloc(9);
+        let retVal, ref_id;
+
+        if (fn && typeof fn === "function") {
+            //Take into consideration errors
+            const arg1 = this.serializer.read_val(arg1Ptr);
+            const arg2 = this.serializer.read_val(arg2Ptr);
+            retVal = fn.apply(ref, [arg1.val, arg2.val]);
+            if (retVal && this._is_ref_type(retVal)) {
+                ref_id = this.last_ref_id;
+
+                this.last_ref_id = this.last_ref_id + 1;
+                this.refs.set(ref_id, retVal);
+            }
+
+        } else {
+            //TODO Give back error as not function
+        }
+
+        this.serializer.write_val(ptr, retVal, ref_id);
+
+        return ptr;
+
+    }
+
+    new_0(refId) {
+        const ref = this.refs.get(refId);
+        const newVal = new ref();
+        const ptr = this.rust_alloc(9);
+        //Take into consideration errors
+        // TODO : Wrap in try catch send error if catch
+        const ref_id = this.last_ref_id;
+        this.last_ref_id = this.last_ref_id + 1;
+        this.refs.set(ref_id, newVal);
+
+        this.serializer.write_val(ptr, newVal, ref_id);
+
+        return ptr;
+    }
+
+    new_1(refId, argPtr) {
+        const ref = this.refs.get(refId);
+        const arg = this.serializer.read_val(argPtr);
+        const newVal = new ref(arg.val);
+        const ptr = this.rust_alloc(9);
+        //Take into consideration errors
+        // TODO : Wrap in try catch send error if catch
+        const ref_id = this.last_ref_id;
+        this.last_ref_id = this.last_ref_id + 1;
+        this.refs.set(ref_id, newVal);
+
+        this.serializer.write_val(ptr, newVal, ref_id);
+
+        return ptr;
     }
 
     drop_val(refId) {

@@ -196,6 +196,14 @@ export class Serializer {
         return ptr + 1 + this.type_size.ref;
     }
 
+    write_function(ptr, val, ref_id) {
+        this.buff[ptr] = this.type_tag.Function;
+        this.b32_helper.view_u32[0] = ref_id;
+        this.buff.set(this.b32_helper.view_u8, ptr + 1);
+
+        return ptr + 1 + this.type_size.ref;
+    }
+
     write_val(ptr, val, ref_id) {
         if (val === undefined || val === null) {
             return this.write_empty(ptr);
@@ -211,6 +219,8 @@ export class Serializer {
                 this.write_string(ptr, val);
             } else if (type === "object") {
                 this.write_object(ptr, val, ref_id);
+            } else if (type === "function") {
+                this.write_function(ptr, val, ref_id);
             }
         }
     }
