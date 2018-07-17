@@ -69,6 +69,14 @@ export default function setupTestCallFunction() {
             chai.expect(fn_container.fn_no_args_return_val).to.equal(private_context.fn_no_args_return_val);
         });
 
+        it("can call a function with one arg", function () {
+            chai.expect(private_context.fn_one_arg_val_called).to.equal(false);
+            chai.expect(private_context.fn_one_arg_val).to.equal(undefined);
+            instance.exports.call_fn_one_arg_val();
+            chai.expect(private_context.fn_one_arg_val_called).to.equal(true);
+            chai.expect(private_context.fn_one_arg_val).to.equal("a string arg");
+        });
+
         it("can call a function with two args", function () {
             chai.expect(private_context.fn_two_args_called).to.equal(false);
             chai.expect(private_context.fn_two_args_val1).to.equal(undefined);
