@@ -25,8 +25,10 @@ export class Serializer {
             TypedArray: 12,
             Object: 13,
             Function: 14,
-            Error: 15,
-            Unknown: 16, // To be used for sanity
+            Ref: 15,
+            Lambda: 16,
+            Error: 17,
+            Unknown: 18, // To be used for sanity checks
         }
     };
 
@@ -317,10 +319,13 @@ export class Serializer {
             ret.val = this.read_u32(ptr + 1);
         } else if (tag === this.type_tag.F32) {
             ret.val = this.read_f32(ptr + 1);
-        } else if(tag == this.type_tag.F64) {
+        } else if (tag === this.type_tag.F64) {
             ret.val = this.read_f64(ptr + 1);
         } else if (tag === this.type_tag.String) {
             ret.val = this.read_string(ptr + 1);
+        } else if (tag === this.type_tag.Ref) {
+            ret.isRef = true;
+            ret.val = this.read_u32(ptr + 1);
         }
 
         return ret;

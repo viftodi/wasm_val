@@ -11,7 +11,7 @@ import { Serializer } from './wasm_val_serializer.js';
 export class WasmValModule {
 
     constructor(wasmFile, context, options, ) {
-        this.apiVersion = 2;
+        this.apiVersion = 3;
         this.wasmFile = wasmFile;
         this.options = options;
         this.context = context;
@@ -119,17 +119,24 @@ export class WasmValModule {
 
     }
 
+    read_val(valPtr) {
+        const valBox = this.serializer.read_val(valPtr);
+
+        if (valBox.isRef) {
+            return this.refs.get(valBox.val);
+        } else {
+            return valBox.val;
+        }
+    }
+
     set_val(refId, strLen, namePtr, valPtr) {
         const ref = this.refs.get(refId);
         const nameBytes = this.buff.subarray(namePtr, namePtr + strLen);
         const name = this.textDecoder.decode(nameBytes);
-        let val = this.serializer.read_val(valPtr);
+        let val = this.read_val(valPtr);
 
-        if (val.isRef) {
+        ref[name] = val;
 
-        } else {
-            ref[name] = val.val;
-        }
     }
 
     call_0(refId, strLen, namePtr) {
@@ -167,8 +174,8 @@ export class WasmValModule {
 
         if (fn && typeof fn === "function") {
             //Take into consideration errors
-            const arg = this.serializer.read_val(argPtr);
-            retVal = fn.apply(ref, [arg.val]);
+            const arg = this.read_val(argPtr);
+            retVal = fn.apply(ref, [arg]);
             if (retVal && this._is_ref_type(retVal)) {
                 ref_id = this.last_ref_id;
 
@@ -196,9 +203,9 @@ export class WasmValModule {
 
         if (fn && typeof fn === "function") {
             //Take into consideration errors
-            const arg1 = this.serializer.read_val(arg1Ptr);
-            const arg2 = this.serializer.read_val(arg2Ptr);
-            retVal = fn.apply(ref, [arg1.val, arg2.val]);
+            const arg1 = this.read_val(arg1Ptr);
+            const arg2 = this.read_val(arg2Ptr);
+            retVal = fn.apply(ref, [arg1, arg2]);
             if (retVal && this._is_ref_type(retVal)) {
                 ref_id = this.last_ref_id;
 
@@ -233,8 +240,8 @@ export class WasmValModule {
 
     new_1(refId, argPtr) {
         const ref = this.refs.get(refId);
-        const arg = this.serializer.read_val(argPtr);
-        const newVal = new ref(arg.val);
+        const arg = this.read_val(argPtr);
+        const newVal = new ref(arg);
         const ptr = this.rust_alloc(9);
         //Take into consideration errors
         // TODO : Wrap in try catch send error if catch
