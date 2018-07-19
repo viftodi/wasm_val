@@ -8,8 +8,8 @@
 
 use std::io::Cursor;
 
-use super::JsSerializable;
 use ser_constants::TypeTag;
+use super::JsSerializable;
 
 use byteorder::{LittleEndian, WriteBytesExt,};
 

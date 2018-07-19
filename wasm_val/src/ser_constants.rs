@@ -24,6 +24,8 @@ pub enum TypeTag {
     TypedArray = 12,
     Object = 13,
     Function = 14,
-    Error = 15,
-    Unknown = 16,
+    Ref = 15,
+    Lambda = 16,
+    Error = 17,
+    Unknown = 18,
 }

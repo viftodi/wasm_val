@@ -11,7 +11,8 @@ use ser_constants::TypeTag;
 
 use byteorder::{LittleEndian, WriteBytesExt,};
 
-mod js_ser_num;
+mod js_val;
+mod num;
 
 pub trait JsSerializable {
     fn size(&self) -> u8;
@@ -28,7 +29,6 @@ impl JsSerializable for bool {
         }
     }
 }
-
 
 impl<'a> JsSerializable for &'a str {
     fn size(&self) -> u8 { 9 }
