@@ -6,7 +6,7 @@
     <script type="module">
         import { WasmValModule } from "/node_modules/wasm_val_module/wasm_val_module.js";
 
-        const mod = new WasmValModule('rust_wasm/target/wasm32-unknown-unknown/release/wasm_hello_world.wasm', window);
+        const mod = new WasmValModule('rust_wasm/target/wasm32-unknown-unknown/release/wasm_create_element.wasm', window);
         mod.run()
             .then((instance) => {
                 instance.exports.main();
@@ -17,8 +17,7 @@
 </head>
 
 <body>
-    <div>The text bellow has been set from Rust</div>
-    <div id="rust_content"></div>
+    <div>The text bellow has been created from Rust</div>
 </body>
 
 </html>

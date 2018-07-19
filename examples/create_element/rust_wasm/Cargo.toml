@@ -1,5 +1,5 @@
 [package]
-name = "wasm_clock"
+name = "wasm_create_element"
 version = "1.0.0"
 authors = ["Vladimir Iftodi <Vladimir.Iftodi@gmail.com>"]
 

@@ -13,8 +13,9 @@ const context = {
     bool_true: { get: true },
     number_negative: { get: -999.1424475 },
     number_positive: { get: 999.4214852 },
-    empty_string: { get: ""},
+    empty_string: { get: "" },
     a_string: { get: "Here you go Rust!" },
+    an_object: { get: { "hello": "world" } },
 }
 
 export default function setupTestGetThenSet() {
@@ -29,7 +30,7 @@ export default function setupTestGetThenSet() {
         // Code is very repetitive; 
         // TODO Refactor to a function that takes the property name as arg and does the rest
 
-        it("should properly get and set boolean false value", function () {
+        it("should properly get and set a boolean false value", function () {
             const bool_false = context.bool_false;
 
             chai.expect(bool_false.get).to.equal(false);
@@ -38,7 +39,7 @@ export default function setupTestGetThenSet() {
             chai.expect(bool_false.set).to.equal(false);
         });
 
-        it("should properly get and set boolean true value", function () {
+        it("should properly get and set a boolean true value", function () {
             const bool_true = context.bool_true;
 
             chai.expect(bool_true.get).to.equal(true);
@@ -77,6 +78,14 @@ export default function setupTestGetThenSet() {
             chai.expect(a_string.set).to.equal(undefined);
             instance.exports.get_and_set_a_string();
             chai.expect(a_string.set).to.equal(a_string.get);
+        });
+
+        it("should properly get and set an object value", function () {
+            const an_object = context.an_object;
+
+            chai.expect(an_object.set).to.equal(undefined);
+            instance.exports.get_and_set_an_object();
+            chai.expect(an_object.set).to.equal(an_object.get);
         });
     })
 }
