@@ -18,26 +18,48 @@ This project is dual licenced under Apache 2 and the MIT license.
 
 For more details check the LICENCE.md file
 
-## Features
+## Preview
 
-It is currently possible to do the following:
- - Obtain global values from the javascript context
- - Get and Set values from rust on javascript objects
- - Call a function with zero or one arguments
+It is currently possible to obtain values from javascript and get/set their properties as well as call method on javascript objects.
 
+It is also possible to call constructors and obtain functions for repeated calls.
 
-The following types can be passed from javascript to rust/wasm :
- - Null/Undefined
- - Boolean
- - Number
- - String
- - Object
+Below is an example demonstrating various features:
 
- The following types can be currently passed from rust to javascript and be properly deserialized in javascript:
+```rust
+// You can obtain a value from the global context
+let document = JsValue::get_global("document"); 
+// And get a property of such a value
+let title = document.get_val("title").unwrap().as_str().unwrap();
+let from_rust = format!("Hello from rust <3 your title is: {}", title);
+// You can also call a constructor
+let textNode = document.call_method_with_arg("createTextNode", from_rust.as_str()).unwrap();
+// Pass a previously obtained javascript value back to javascript
+document.get_val("body").unwrap().call_method_with_arg("appendChild", textNode);
 
- - bool
- - rust primitive numeric types (except i64/u64)
+// If you plan to call a function multiple times for efficiently reasons you can obtain a reference to it:
+let console = JSValue::get_global("console");
+let console_log = console.get_val("log").unwrap();
+
+console_log.call_with_arg("Hello world");
+console_log.call_with_args(&[&"hello world", &true, &" ", &3.14]);
+
+```
+
+The following types can be send from rust to javascript:
+
+ - boolean
+ - primitive numeric types (except i64/u64)
  - str
+ - JsValue (values obtained from javascript)
+
+## Examples
+
+There are multiple examples provided in the examples folder :
+ - hello_world : shows the ability to get and set values, as well as call functions.
+ - clock : makes use of the ability to call constructors and shows a basic animation managed by javascript
+ - create_element : showcases mainly the ability to call functions with multiple parameters
+ - canvas_animate_solar_system : A more complete example that has been adapted from the canvas animation example on mozilla's site.
 
 ## Get started
 
@@ -49,7 +71,7 @@ Add the wasm_val depencendy to your Cargo.toml
 
 ```toml
 [dependencies]
-wasm_val = "0.2.1"
+wasm_val = "0.3.0"
 ```
 
 It is also important to also declare your rust project type as cdylib.
@@ -93,7 +115,7 @@ Assuming you're in the folder where your web-app resides.
 Firstly either install the wasm-val-module using npm :
 
 ```bash
-npm install wasm_val_module@0.2.3
+npm install wasm_val_module@0.3.0
 
 ```
 
@@ -118,5 +140,3 @@ The WasmValModule constructor takes the path to the wasm file as well as a conte
 The context object is what provides the accessible javascript members on the rust side.
 
 And hopefully that's it.
-
-Also check the examples folder for more insights.
