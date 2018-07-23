@@ -9,8 +9,6 @@
         const mod = new WasmValModule('rust_wasm/target/wasm32-unknown-unknown/release/wasm_clock.wasm', window);
         mod.run()
             .then((instance) => {
-                //instance.exports.main();
-
                 const animateClock = function() {
                     instance.exports.set_time();
 

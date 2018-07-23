@@ -13,20 +13,21 @@ use wasm_val::{JsValue};
 #[no_mangle]
 pub extern "C" fn main() -> () {
     let performance = JsValue::get_global("performance");
-    let before = performance.call("now").unwrap().as_number().unwrap();
+    let performance_now = performance.get_val("now").unwrap();
+    let before = performance_now.call().unwrap().as_number().unwrap();
     let console = JsValue::get_global("console");
     let document = JsValue::get_global("document");
     let body = document.get_val("body").unwrap();
-    let new_div = document.call_with_arg("createElement", "div").unwrap();
-    let text_node = document.call_with_arg("createTextNode", "Hello from Rust <3").unwrap();
+    let new_div = document.call_method_with_arg("createElement", "div").unwrap();
+    let text_node = document.call_method_with_arg("createTextNode", "Hello from Rust <3").unwrap();
     
-    new_div.call_with_arg("appendChild", text_node);
-    body.call_with_arg("appendChild", new_div);
+    new_div.call_method_with_arg("appendChild", text_node);
+    body.call_method_with_arg("appendChild", new_div);
 
 
-    let after = performance.call("now").unwrap().as_number().unwrap();
+    let after = performance_now.call().unwrap().as_number().unwrap();
     let diff = after - before;
     let s1 = format!("Rust finished in about {:.2} ms", diff);
 
-    console.call_with_arg("log", s1.as_str());
+    console.call_method_with_arg("log", s1.as_str());
 }

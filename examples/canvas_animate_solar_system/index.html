@@ -1,0 +1,29 @@
+<html>
+
+<head>
+    <title>Animate canvas</title>
+
+    <script type="module">
+        import { WasmValModule } from "/node_modules/wasm_val_module/wasm_val_module.js";
+
+        const mod = new WasmValModule('rust_wasm/target/wasm32-unknown-unknown/release/wasm_canvas_animate_solar_system.wasm', window);
+        mod.run()
+            .then((instance) => {
+                const animateClock = function () {
+                    instance.exports.draw();
+
+                    requestAnimationFrame(() => animateClock());
+                }
+
+                animateClock();
+            });
+
+    </script>
+
+</head>
+
+<body>
+    <canvas id="canvas" width="300" height="300"></canvas>
+</body>
+
+</html>

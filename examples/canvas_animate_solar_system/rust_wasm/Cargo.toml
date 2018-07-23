@@ -1,5 +1,5 @@
 [package]
-name = "wasm_clock"
+name = "wasm_canvas_animate_solar_system"
 version = "1.0.0"
 authors = ["Vladimir Iftodi <Vladimir.Iftodi@gmail.com>"]
 
@@ -9,3 +9,4 @@ crate-type = ["cdylib"]
 
 [dependencies]
 wasm_val = "0.3.0"
+lazy_static = "1.0.2"
