@@ -8,7 +8,7 @@
 
 use std::mem::forget;
 
-const API_VERSION: u32 = 3;
+const API_VERSION: u32 = 4;
 
 pub fn rust_alloc(capacity: u32) -> *mut u8 {
     let mut mem = Vec::with_capacity(capacity as usize);

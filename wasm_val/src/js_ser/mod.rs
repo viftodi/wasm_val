@@ -15,12 +15,12 @@ mod js_val;
 mod num;
 
 pub trait JsSerializable {
-    fn size(&self) -> u8;
+    fn size(&self) -> u32;
     fn ser(&self, cursor: &mut Cursor<Vec<u8>>) -> ();
 }
 
 impl JsSerializable for bool {
-    fn size(&self) -> u8 { 1 }
+    fn size(&self) -> u32 { 1 }
 
     fn ser(&self, cursor: &mut Cursor<Vec<u8>>) {
         match self {
@@ -31,7 +31,7 @@ impl JsSerializable for bool {
 }
 
 impl<'a> JsSerializable for &'a str {
-    fn size(&self) -> u8 { 9 }
+    fn size(&self) -> u32 { 9 }
 
     fn ser(&self, cursor: &mut Cursor<Vec<u8>>) -> () {
         cursor.write_u8(TypeTag::String as u8).unwrap();

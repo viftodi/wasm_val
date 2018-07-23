@@ -115,26 +115,10 @@ impl JsValue {
         }
     }
 
-    pub fn call(&self, name: &str) -> Option<JsValue> {
-        match self.val {
-            Val::Ref(ref_id) => {
-                let vec = wasm_ffi::call_0(ref_id, name);
-
-                Some(JsValue::get_single_val(vec))
-            },
-            _ => None
-        }
-    }
-
-    pub fn call_with_arg<S>(&self, name: &str, arg: S) -> Option<JsValue> where S: JsSerializable {
-        match self.val {
-            Val::Ref(ref_id) => {
-                let mut vec = Vec::with_capacity(9);
-                let mut cursor = Cursor::new(vec);
-
-                arg.ser(&mut cursor);
-
-                let ret_vec = wasm_ffi::call_1(ref_id, name, cursor.into_inner());
+    pub fn call(&self) -> Option<JsValue> {
+        match self {
+            JsValue{js_type: Type::Function, val: Val::Ref(ref_id)} => {
+                let ret_vec = wasm_ffi::call_0(*ref_id);
 
                 Some(JsValue::get_single_val(ret_vec))
             },
@@ -142,20 +126,80 @@ impl JsValue {
         }
     }
 
-    pub fn call_with_2_args<S1, S2>(&self, name: &str, arg1: S1, arg2: S2) -> Option<JsValue> where S1: JsSerializable, S2:JsSerializable {
+    pub fn call_with_arg<S>(&self, arg: S) -> Option<JsValue> where S: JsSerializable {
+        match self {
+            JsValue{js_type: Type::Function, val: Val::Ref(ref_id)} => {
+                let vec = Vec::with_capacity(9);
+                let mut cursor = Cursor::new(vec);
+
+                arg.ser(&mut cursor);
+
+                let ret_vec = wasm_ffi::call_1(*ref_id, cursor.into_inner());
+
+                Some(JsValue::get_single_val(ret_vec))
+            },
+            _ => None
+        }
+    }
+
+    pub fn call_with_args(&self, args: &[&JsSerializable]) -> Option<JsValue> {
+        match self {
+            JsValue{js_type: Type::Function, val: Val::Ref(ref_id)} => {
+                let alloc_size = args.iter().fold(0_u32, |acc, val| acc + val.size());
+                let vec: Vec<u8> = Vec::with_capacity(alloc_size as usize);
+                let mut cursor = Cursor::new(vec);
+
+                for arg in args {
+                    arg.ser(&mut cursor);
+                }
+
+                let ret_vec = wasm_ffi::call_args(*ref_id, args.len() as u32, cursor.into_inner());
+
+                Some(JsValue::get_single_val(ret_vec))
+            },
+            _ => None
+        }
+    }
+
+    pub fn call_method(&self, name: &str) -> Option<JsValue> {
         match self.val {
-            Val::Ref(ref_id) => {
-                let mut vec1 = Vec::with_capacity(9);
-                let mut cursor1 = Cursor::new(vec1);
+            Val::Ref(ref_id)  => {
+                let ret_vec = wasm_ffi::call_method_0(ref_id, name);
 
-                arg1.ser(&mut cursor1);
+                Some(JsValue::get_single_val(ret_vec))
+            },
+            _ => None
+        }
+    }
 
-                let mut vec2 = Vec::with_capacity(9);
-                let mut cursor2 = Cursor::new(vec2);
+    pub fn call_method_with_arg<S>(&self, name: &str, arg: S) -> Option<JsValue> where S: JsSerializable {
+        match self.val {
+            Val::Ref(ref_id)  => {
+                let vec = Vec::with_capacity(9);
+                let mut cursor = Cursor::new(vec);
 
-                arg2.ser(&mut cursor2);
+                arg.ser(&mut cursor);
 
-                let ret_vec = wasm_ffi::call_2(ref_id, name, cursor1.into_inner(), cursor2.into_inner());
+                let ret_vec = wasm_ffi::call_method_1(ref_id, name, cursor.into_inner());
+
+                Some(JsValue::get_single_val(ret_vec))
+            },
+            _ => None
+        }
+    }
+
+    pub fn call_method_with_args(&self, name: &str, args: &[&JsSerializable]) -> Option<JsValue> {
+        match self.val {
+            Val::Ref(ref_id)  => {
+                let alloc_size = args.iter().fold(0_u32, |acc, val| acc + val.size());
+                let vec: Vec<u8> = Vec::with_capacity(alloc_size as usize);
+                let mut cursor = Cursor::new(vec);
+
+                for arg in args {
+                    arg.ser(&mut cursor);
+                }
+
+                let ret_vec = wasm_ffi::call_method_args(ref_id, name, args.len() as u32, cursor.into_inner());
 
                 Some(JsValue::get_single_val(ret_vec))
             },
@@ -183,6 +227,24 @@ impl JsValue {
                 arg.ser(&mut cursor);
 
                 let ret_vec = wasm_ffi::new_1(ref_id, cursor.into_inner());
+
+                Some(JsValue::get_single_val(ret_vec))
+            },
+            _ => None
+        }
+    }
+
+    pub fn new_with_args(&self, args: &[&JsSerializable]) -> Option<JsValue> {
+        match self.val {
+            Val::Ref(ref_id) => {
+                let mut vec = Vec::with_capacity(9);
+                let mut cursor = Cursor::new(vec);
+
+                for arg in args {
+                    arg.ser(&mut cursor);
+                }
+
+                let ret_vec = wasm_ffi::new_args(ref_id, args.len() as u32, cursor.into_inner());
 
                 Some(JsValue::get_single_val(ret_vec))
             },

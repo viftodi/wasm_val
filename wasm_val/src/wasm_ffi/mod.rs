@@ -30,27 +30,47 @@ pub fn set_val(ref_id: u32, name: &str, val: Vec<u8>) -> () {
     unsafe { js_exports::set_val(ref_id, name.len() as u32, name.as_ptr(), ptr) };
 }
 
-pub fn call_0(ref_id: u32, name: &str) -> Vec<u8> {
-    let ptr = unsafe { js_exports::call_0(ref_id, name.len() as u32, name.as_ptr()) as *mut u8 };
+pub fn call_0(ref_id: u32) -> Vec<u8> {
+    let ptr = unsafe { js_exports::call_0(ref_id) as *mut u8 };
     let vec = unsafe { Vec::from_raw_parts(ptr, SINGLE_VAL_VEC_LEN, SINGLE_VAL_VEC_LEN) };
 
     return vec;
 }
 
-pub fn call_1(ref_id: u32, name: &str, arg: Vec<u8>) -> Vec<u8> {
+pub fn call_1(ref_id: u32, arg: Vec<u8>) -> Vec<u8> {
     let arg_ptr = arg.as_ptr() as *const u8;
-
-    let ptr = unsafe { js_exports::call_1(ref_id, name.len() as u32, name.as_ptr(), arg_ptr) as *mut u8 };
+    let ptr = unsafe { js_exports::call_1(ref_id, arg_ptr) as *mut u8 };
     let vec = unsafe { Vec::from_raw_parts(ptr, SINGLE_VAL_VEC_LEN, SINGLE_VAL_VEC_LEN) };
 
     return vec;
 }
 
-pub fn call_2(ref_id: u32, name: &str, arg1: Vec<u8>, arg2: Vec<u8>) -> Vec<u8> {
-    let arg1_ptr = arg1.as_ptr() as * const u8;
-    let arg2_ptr = arg2.as_ptr() as * const u8;
+pub fn call_args(ref_id: u32, args_len: u32, args: Vec<u8>) -> Vec<u8> {
+    let args_ptr = args.as_ptr() as * const u8;
+    let ptr = unsafe { js_exports::call_args(ref_id, args_len, args_ptr) as *mut u8 };
+    let vec = unsafe { Vec::from_raw_parts(ptr, SINGLE_VAL_VEC_LEN, SINGLE_VAL_VEC_LEN) };
 
-    let ptr = unsafe { js_exports::call_2(ref_id, name.len() as u32, name.as_ptr(), arg1_ptr, arg2_ptr) as *mut u8 };
+    return vec;
+}
+
+pub fn call_method_0(ref_id: u32, name: &str) -> Vec<u8> {
+    let ptr = unsafe { js_exports::call_method_0(ref_id, name.len() as u32, name.as_ptr()) as *mut u8 };
+    let vec = unsafe { Vec::from_raw_parts(ptr, SINGLE_VAL_VEC_LEN, SINGLE_VAL_VEC_LEN) };
+
+    return vec;
+}
+
+pub fn call_method_1(ref_id: u32, name: &str, arg: Vec<u8>) -> Vec<u8> {
+    let arg_ptr = arg.as_ptr() as *const u8;
+    let ptr = unsafe { js_exports::call_method_1(ref_id, name.len() as u32, name.as_ptr(), arg_ptr) as *mut u8 };
+    let vec = unsafe { Vec::from_raw_parts(ptr, SINGLE_VAL_VEC_LEN, SINGLE_VAL_VEC_LEN) };
+
+    return vec;
+}
+
+pub fn call_method_args(ref_id: u32, name: &str, args_len: u32, args: Vec<u8>) -> Vec<u8> {
+    let args_ptr = args.as_ptr() as *const u8;
+    let ptr = unsafe { js_exports::call_method_args(ref_id, name.len() as u32, name.as_ptr(), args_len, args_ptr) as *mut u8 };
     let vec = unsafe { Vec::from_raw_parts(ptr, SINGLE_VAL_VEC_LEN, SINGLE_VAL_VEC_LEN) };
 
     return vec;
@@ -67,6 +87,15 @@ pub fn new_1(ref_id: u32, arg: Vec<u8>) -> Vec<u8> {
     let arg_ptr = arg.as_ptr() as *const u8;
 
     let ptr = unsafe { js_exports::new_1(ref_id, arg_ptr) as *mut u8 };
+    let vec = unsafe { Vec::from_raw_parts(ptr, SINGLE_VAL_VEC_LEN, SINGLE_VAL_VEC_LEN) };
+
+    return vec;
+}
+
+pub fn new_args(ref_id: u32, args_len: u32, args: Vec<u8>) -> Vec<u8> {
+    let args_ptr = args.as_ptr() as *const u8;
+
+    let ptr = unsafe { js_exports::new_args(ref_id, args_len, args_ptr) as *mut u8 };
     let vec = unsafe { Vec::from_raw_parts(ptr, SINGLE_VAL_VEC_LEN, SINGLE_VAL_VEC_LEN) };
 
     return vec;

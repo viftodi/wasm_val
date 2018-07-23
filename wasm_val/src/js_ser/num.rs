@@ -14,7 +14,7 @@ use super::JsSerializable;
 use byteorder::{LittleEndian, WriteBytesExt,};
 
 impl JsSerializable for i8 {
-    fn size(&self) -> u8 { 2 }
+    fn size(&self) -> u32 { 2 }
 
     fn ser(&self, cursor: &mut Cursor<Vec<u8>>) {
         cursor.write_u8(TypeTag::Int8 as u8).unwrap();
@@ -23,7 +23,7 @@ impl JsSerializable for i8 {
 }
 
 impl JsSerializable for u8 {
-    fn size(&self) -> u8 { 2 }
+    fn size(&self) -> u32 { 2 }
 
     fn ser(&self, cursor: &mut Cursor<Vec<u8>>) {
         cursor.write_u8(TypeTag::UInt8 as u8).unwrap();
@@ -32,7 +32,7 @@ impl JsSerializable for u8 {
 }
 
 impl JsSerializable for i16 {
-    fn size(&self) -> u8 { 3 }
+    fn size(&self) -> u32 { 3 }
 
     fn ser(&self, cursor: &mut Cursor<Vec<u8>>) {
         cursor.write_u8(TypeTag::Int16 as u8).unwrap();
@@ -41,7 +41,7 @@ impl JsSerializable for i16 {
 }
 
 impl JsSerializable for u16 {
-    fn size(&self) -> u8 { 3 }
+    fn size(&self) -> u32 { 3 }
 
     fn ser(&self, cursor: &mut Cursor<Vec<u8>>) {
         cursor.write_u8(TypeTag::UInt16 as u8).unwrap();
@@ -50,7 +50,7 @@ impl JsSerializable for u16 {
 }
 
 impl JsSerializable for i32 {
-    fn size(&self) -> u8 { 5 }
+    fn size(&self) -> u32 { 5 }
 
     fn ser(&self, cursor: &mut Cursor<Vec<u8>>) {
         cursor.write_u8(TypeTag::Int32 as u8).unwrap();
@@ -59,7 +59,7 @@ impl JsSerializable for i32 {
 }
 
 impl JsSerializable for u32 {
-    fn size(&self) -> u8 { 5 }
+    fn size(&self) -> u32 { 5 }
 
     fn ser(&self, cursor: &mut Cursor<Vec<u8>>) {
         cursor.write_u8(TypeTag::UInt32 as u8).unwrap();
@@ -68,7 +68,7 @@ impl JsSerializable for u32 {
 }
 
 impl JsSerializable for f32 {
-    fn size(&self) -> u8 { 5 }
+    fn size(&self) -> u32 { 5 }
 
     fn ser(&self, cursor: &mut Cursor<Vec<u8>>) {
         cursor.write_u8(TypeTag::F32 as u8).unwrap();
@@ -77,7 +77,7 @@ impl JsSerializable for f32 {
 }
 
 impl JsSerializable for f64 {
-    fn size(&self) -> u8 { 9 }
+    fn size(&self) -> u32 { 9 }
 
     fn ser(&self, cursor: &mut Cursor<Vec<u8>>) {
         cursor.write_u8(TypeTag::F64 as u8).unwrap();

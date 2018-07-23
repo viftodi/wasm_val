@@ -6,7 +6,7 @@ use super::{JsSerializable};
 use byteorder::{LittleEndian, WriteBytesExt,};
 
 impl JsSerializable for JsValue {
-    fn size(&self) -> u8 {
+    fn size(&self) -> u32 {
         match &self.val {
             Val::None => 1,
             Val::Boolean(b) => b.size(),
