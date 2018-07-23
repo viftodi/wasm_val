@@ -11,7 +11,7 @@ import { Serializer } from './wasm_val_serializer.js';
 export class WasmValModule {
 
     constructor(wasmFile, context, options, ) {
-        this.apiVersion = 3;
+        this.apiVersion = 4;
         this.wasmFile = wasmFile;
         this.options = options;
         this.context = context;
@@ -22,9 +22,13 @@ export class WasmValModule {
                 set_val: this.set_val.bind(this),
                 call_0: this.call_0.bind(this),
                 call_1: this.call_1.bind(this),
-                call_2: this.call_2.bind(this),
+                call_args: this.call_args.bind(this),
+                call_method_0: this.call_method_0.bind(this),
+                call_method_1: this.call_method_1.bind(this),
+                call_method_args: this.call_method_args.bind(this),
                 new_0: this.new_0.bind(this),
                 new_1: this.new_1.bind(this),
+                new_args: this.new_args.bind(this),
                 drop_val: this.drop_val.bind(this),
             }
         }
@@ -78,11 +82,36 @@ export class WasmValModule {
         return t === "object" || t === "function";
     }
 
+    _prepare_val(parent, val) {
+        const boxedVal = { isRef: false, ref_id: null, val: val };
+
+        if (typeof val === "function") {
+            boxedVal.val = val.bind(parent);
+        }
+
+        if (this._is_ref_type(boxedVal.val)) {
+            const ref_id = this.last_ref_id;
+
+            boxedVal.ref_id = ref_id;
+
+            this.last_ref_id = this.last_ref_id + 1;
+            this.refs.set(ref_id, boxedVal.val);
+        }
+
+        return boxedVal;
+    }
+
+    _get_str(strLen, strPtr) {
+        const strBytes = this.buff.subarray(strPtr, strPtr + strLen);
+        const str = this.textDecoder.decode(strBytes);
+
+        return str;
+    }
+
     get_val_global(strLen, namePtr) {
-        const nameBytes = this.buff.subarray(namePtr, namePtr + strLen);
-        const name = this.textDecoder.decode(nameBytes);
-        const foundVal = this.context[name];
         const ptr = this.rust_alloc(9);
+        const name = this._get_str(strLen, namePtr);
+        const foundVal = this.context[name];
         let ref_id;
 
         if (foundVal && this._is_ref_type(foundVal)) {
@@ -98,30 +127,19 @@ export class WasmValModule {
     }
 
     get_val(refId, strLen, namePtr) {
-        const ref = this.refs.get(refId);
-        const nameBytes = this.buff.subarray(namePtr, namePtr + strLen);
-        const name = this.textDecoder.decode(nameBytes);
-        const val = ref[name];
         const ptr = this.rust_alloc(9);
+        const ref = this.refs.get(refId);
+        const name = this._get_str(strLen, namePtr);
+        const val = ref[name];
+        const boxedVal = this._prepare_val(ref, val);
 
-        if (val && this._is_ref_type(val)) {
-            const ref_id = this.last_ref_id;
+        this.serializer.write_val(ptr, boxedVal.val, boxedVal.ref_id);
 
-            this.last_ref_id = this.last_ref_id + 1;
-            this.refs.set(ref_id, val);
-
-            this.serializer.write_val(ptr, val, ref_id);
-
-        } else {
-            this.serializer.write_val(ptr, val);
-        }
         return ptr;
 
     }
 
-    read_val(valPtr) {
-        const valBox = this.serializer.read_val(valPtr);
-
+    unbox_val(valBox) {
         if (valBox.isRef) {
             return this.refs.get(valBox.val);
         } else {
@@ -129,127 +147,148 @@ export class WasmValModule {
         }
     }
 
+    read_val(valPtr) {
+        const valBox = this.serializer.read_val(valPtr);
+
+        return this.unbox_val(valBox);
+    }
+
+    read_vals(valsLen, valsPtr) {
+        const valBoxes = this.serializer.read_vals(valsLen, valsPtr);
+
+        return valBoxes.map(valBox => this.unbox_val(valBox));
+    }
+
     set_val(refId, strLen, namePtr, valPtr) {
         const ref = this.refs.get(refId);
-        const nameBytes = this.buff.subarray(namePtr, namePtr + strLen);
-        const name = this.textDecoder.decode(nameBytes);
+        const name = this._get_str(strLen, namePtr);
         let val = this.read_val(valPtr);
 
         ref[name] = val;
 
     }
 
-    call_0(refId, strLen, namePtr) {
-        const ref = this.refs.get(refId);
-        const nameBytes = this.buff.subarray(namePtr, namePtr + strLen);
-        const name = this.textDecoder.decode(nameBytes);
-        let fn = ref[name];
+    call_0(refId) {
         const ptr = this.rust_alloc(9);
-        let retVal, ref_id;
+        const fn = this.refs.get(refId);
+        // TODO Take into consideration errors/exception
+        const retVal = fn.apply(null, []);
+        const boxedRetVal = this._prepare_val(fn, retVal);
 
-        if (fn && typeof fn === "function") {
-            //Take into consideration errors
-            retVal = fn.apply(ref, []);
-            if (retVal && this._is_ref_type(retVal)) {
-                ref_id = this.last_ref_id;
-
-                this.last_ref_id = this.last_ref_id + 1;
-                this.refs.set(ref_id, retVal);
-            }
-
-        }
-
-        this.serializer.write_val(ptr, retVal, ref_id);
+        this.serializer.write_val(ptr, boxedRetVal.val, boxedRetVal.ref_id);
 
         return ptr;
     }
 
-    call_1(refId, strLen, namePtr, argPtr) {
-        const ref = this.refs.get(refId);
-        const nameBytes = this.buff.subarray(namePtr, namePtr + strLen);
-        const name = this.textDecoder.decode(nameBytes);
-        let fn = ref[name];
+    call_1(refId, argPtr) {
         const ptr = this.rust_alloc(9);
-        let retVal, ref_id;
+        const fn = this.refs.get(refId);
+        const arg = this.read_val(argPtr);
+        const retVal = fn.apply(null, [arg]);
+        const boxedRetVal = this._prepare_val(fn, retVal);
 
-        if (fn && typeof fn === "function") {
-            //Take into consideration errors
-            const arg = this.read_val(argPtr);
-            retVal = fn.apply(ref, [arg]);
-            if (retVal && this._is_ref_type(retVal)) {
-                ref_id = this.last_ref_id;
-
-                this.last_ref_id = this.last_ref_id + 1;
-                this.refs.set(ref_id, retVal);
-            }
-
-        } else {
-            //TODO Give back error as not function
-        }
-
-        this.serializer.write_val(ptr, retVal, ref_id);
+        this.serializer.write_val(ptr, boxedRetVal.val, boxedRetVal.ref_id);
 
         return ptr;
-
     }
 
-    call_2(refId, strLen, namePtr, arg1Ptr, arg2Ptr) {
-        const ref = this.refs.get(refId);
-        const nameBytes = this.buff.subarray(namePtr, namePtr + strLen);
-        const name = this.textDecoder.decode(nameBytes);
-        let fn = ref[name];
+    call_args(refId, argsLen, argsPtr) {
         const ptr = this.rust_alloc(9);
-        let retVal, ref_id;
+        const fn = this.refs.get(refId);
+        const args = this.read_vals(argsLen, argsPtr);
+        // TODO Take into consideration exceptions
+        const retVal = fn.apply(null, args);
+        const boxedRetVal = this._prepare_val(fn, retVal);
 
-        if (fn && typeof fn === "function") {
-            //Take into consideration errors
-            const arg1 = this.read_val(arg1Ptr);
-            const arg2 = this.read_val(arg2Ptr);
-            retVal = fn.apply(ref, [arg1, arg2]);
-            if (retVal && this._is_ref_type(retVal)) {
-                ref_id = this.last_ref_id;
-
-                this.last_ref_id = this.last_ref_id + 1;
-                this.refs.set(ref_id, retVal);
-            }
-
-        } else {
-            //TODO Give back error as not function
-        }
-
-        this.serializer.write_val(ptr, retVal, ref_id);
+        this.serializer.write_val(ptr, boxedRetVal.val, boxedRetVal.ref_id);
 
         return ptr;
+    }
 
+    call_method_0(refId, strLen, namePtr) {
+        const ptr = this.rust_alloc(9);
+        const parentRef = this.refs.get(refId);
+        const name = this._get_str(strLen, namePtr);
+        const fn = parentRef[name];
+
+        // TODO Handle case when it's not a function
+        if (fn && typeof fn === "function") {
+            const retVal = fn.apply(parentRef, []);
+            const boxedRetVal = this._prepare_val(fn, retVal);
+            this.serializer.write_val(ptr, boxedRetVal.val, boxedRetVal.ref_id);
+        }
+
+        return ptr;
+    }
+
+    call_method_1(refId, strLen, namePtr, argPtr) {
+        const ptr = this.rust_alloc(9);
+        const parentRef = this.refs.get(refId);
+        const name = this._get_str(strLen, namePtr);
+        const fn = parentRef[name];
+        const arg = this.read_val(argPtr);
+
+        // TODO Handle case when it's not a function
+        if (fn && typeof fn === "function") {
+            const retVal = fn.apply(parentRef, [arg]);
+            const boxedRetVal = this._prepare_val(fn, retVal);
+            this.serializer.write_val(ptr, boxedRetVal.val, boxedRetVal.ref_id);
+        }
+
+        return ptr;
+    }
+
+    call_method_args(refId, strLen, namePtr, argsLen, argsPtr) {
+        const ptr = this.rust_alloc(9);
+        const parentRef = this.refs.get(refId);
+        const name = this._get_str(strLen, namePtr);
+        const fn = parentRef[name];
+        const args = this.read_vals(argsLen, argsPtr);
+
+        // TODO Handle case when it's not a function
+        if (fn && typeof fn === "function") {
+            const retVal = fn.apply(parentRef, args);
+            const boxedRetVal = this._prepare_val(fn, retVal);
+            this.serializer.write_val(ptr, boxedRetVal.val, boxedRetVal.ref_id);
+        }
+
+        return ptr;
     }
 
     new_0(refId) {
-        const ref = this.refs.get(refId);
-        const newVal = new ref();
+        const fnConstructor = this.refs.get(refId);
         const ptr = this.rust_alloc(9);
-        //Take into consideration errors
-        // TODO : Wrap in try catch send error if catch
-        const ref_id = this.last_ref_id;
-        this.last_ref_id = this.last_ref_id + 1;
-        this.refs.set(ref_id, newVal);
+        // TODO Take into consideration exceptions
+        const newVal = new fnConstructor();
+        const boxedNewVal = this._prepare_val(fnConstructor, newVal);
 
-        this.serializer.write_val(ptr, newVal, ref_id);
+        this.serializer.write_val(ptr, boxedNewVal.val, boxedNewVal.ref_id);
 
         return ptr;
     }
 
     new_1(refId, argPtr) {
-        const ref = this.refs.get(refId);
-        const arg = this.read_val(argPtr);
-        const newVal = new ref(arg);
+        const fnConstructor = this.refs.get(refId);
         const ptr = this.rust_alloc(9);
-        //Take into consideration errors
-        // TODO : Wrap in try catch send error if catch
-        const ref_id = this.last_ref_id;
-        this.last_ref_id = this.last_ref_id + 1;
-        this.refs.set(ref_id, newVal);
+        const arg = this.read_val(argPtr);
+        // TODO Take into consideration exceptions
+        const newVal = new fnConstructor(arg);
+        const boxedNewVal = this._prepare_val(fnConstructor, newVal);
 
-        this.serializer.write_val(ptr, newVal, ref_id);
+        this.serializer.write_val(ptr, boxedNewVal.val, boxedNewVal.ref_id);
+
+        return ptr;
+    }
+
+    new_args(refId, argsLen, argsPtr) {
+        const fnConstructor = this.refs.get(refId);
+        const ptr = this.rust_alloc(9);
+        const args = this.read_vals(argsLen, argsPtr);
+        // TODO Take into consideration exceptions
+        const newVal = new fnConstructor(...args);
+        const boxedNewVal = this._prepare_val(fnConstructor, newVal);
+
+        this.serializer.write_val(ptr, boxedNewVal.val, boxedNewVal.ref_id);
 
         return ptr;
     }

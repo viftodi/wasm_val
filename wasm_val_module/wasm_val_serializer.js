@@ -128,6 +128,17 @@ export class Serializer {
 
         this.textDecoder = new TextDecoder("utf8");
         this.textEncoder = new TextEncoder("utf8");
+
+        this.ptrBox = function (ptr_val) {
+            let ptr = ptr_val;
+
+            return {
+                get: function () { return ptr; },
+                get_then_inc: function (offset) { const ptr_ = ptr; ptr += offset; return ptr_; },
+                inc_then_get: function (offset) { ptr += offset; return ptr },
+            }
+
+        }
     }
 
     get buff() {
@@ -227,67 +238,67 @@ export class Serializer {
         }
     }
 
-    read_i8(ptr) {
-        this.b8_helper.view_u8[0] = this.buff[ptr];
+    read_i8(ptrBox) {
+        this.b8_helper.view_u8[0] = this.buff[ptrBox.get_then_inc(1)];
 
         return this.b8_helper.view_i8[0];
     }
 
-    read_u8(ptr) {
-        return this.buff[ptr];
+    read_u8(ptrBox) {
+        return this.buff[ptrBox.get_then_inc(1)];
     }
 
-    read_i16(ptr) {
-        const subBuff = this.buff.subarray(ptr, ptr + 2);
+    read_i16(ptrBox) {
+        const subBuff = this.buff.subarray(ptrBox.get(), ptrBox.inc_then_get(2));
 
         this.b16_helper.view_u8.set(subBuff);
 
         return this.b16_helper.view_i16[0];
     }
 
-    read_u16(ptr) {
-        const subBuff = this.buff.subarray(ptr, ptr + 2);
+    read_u16(ptrBox) {
+        const subBuff = this.buff.subarray(ptrBox.get(), ptrBox.inc_then_get(2));
 
         this.b16_helper.view_u8.set(subBuff);
 
         return this.b16_helper.view_u16[0];
     }
 
-    read_i32(ptr) {
-        const subBuff = this.buff.subarray(ptr, ptr + 4);
+    read_i32(ptrBox) {
+        const subBuff = this.buff.subarray(ptrBox.get(), ptrBox.inc_then_get(4));
 
         this.b32_helper.view_u8.set(subBuff);
 
         return this.b32_helper.view_i32[0];
     }
 
-    read_u32(ptr) {
-        const subBuff = this.buff.subarray(ptr, ptr + 4);
+    read_u32(ptrBox) {
+        const subBuff = this.buff.subarray(ptrBox.get(), ptrBox.inc_then_get(4));
 
         this.b32_helper.view_u8.set(subBuff);
 
         return this.b32_helper.view_u32[0];
     }
 
-    read_f32(ptr) {
-        const subBuff = this.buff.subarray(ptr, ptr + 4);
+    read_f32(ptrBox) {
+        const subBuff = this.buff.subarray(ptrBox.get(), ptrBox.inc_then_get(4));
 
         this.b32_helper.view_u8.set(subBuff);
 
         return this.b32_helper.view_f32[0];
     }
 
-    read_f64(ptr) {
-        const subBuff = this.buff.subarray(ptr, ptr + 8);
+    read_f64(ptrBox) {
+        const subBuff = this.buff.subarray(ptrBox.get(), ptrBox.inc_then_get(8));
 
         this.f64_helper.view_u8.set(subBuff);
 
         return this.f64_helper.view_f64[0];
     }
 
-    read_string(ptr) {
-        const strLen = this.read_u32(ptr);
-        const strPtr = this.read_u32(ptr + 4);
+    read_string(ptrBox) {
+        const strLen = this.read_u32(ptrBox);
+        const strPtr = this.read_u32(ptrBox);
         const strBytes = this.buff.subarray(strPtr, strPtr + strLen);
         const str = this.textDecoder.decode(strBytes);
 
@@ -295,7 +306,14 @@ export class Serializer {
     }
 
     read_val(ptr) {
-        const tag = this.buff[ptr];
+        const ptrBox = new this.ptrBox(ptr);
+
+        return this._read_val(ptrBox);
+    }
+
+    _read_val(ptrBox) {
+
+        const tag = this.buff[ptrBox.get_then_inc(1)];
         const ret = { isRef: false, val: null };
 
         // Repetitive code
@@ -306,30 +324,42 @@ export class Serializer {
         } else if (tag === this.type_tag.BoolTrue) {
             ret.val = true;
         } else if (tag === this.type_tag.Int8) {
-            ret.val = this.read_i8(ptr + 1);
+            ret.val = this.read_i8(ptrBox);
         } else if (tag === this.type_tag.UInt8) {
-            ret.val = this.read_u8(ptr + 1);
+            ret.val = this.read_u8(ptrBox);
         } else if (tag === this.type_tag.Int16) {
-            ret.val = this.read_i16(ptr + 1);
+            ret.val = this.read_i16(ptrBox);
         } else if (tag === this.type_tag.UInt16) {
-            ret.val = this.read_u16(ptr + 1);
+            ret.val = this.read_u16(ptrBox);
         } else if (tag === this.type_tag.Int32) {
-            ret.val = this.read_i32(ptr + 1);
+            ret.val = this.read_i32(ptrBox);
         } else if (tag === this.type_tag.UInt32) {
-            ret.val = this.read_u32(ptr + 1);
+            ret.val = this.read_u32(ptrBox);
         } else if (tag === this.type_tag.F32) {
-            ret.val = this.read_f32(ptr + 1);
+            ret.val = this.read_f32(ptrBox);
         } else if (tag === this.type_tag.F64) {
-            ret.val = this.read_f64(ptr + 1);
+            ret.val = this.read_f64(ptrBox);
         } else if (tag === this.type_tag.String) {
-            ret.val = this.read_string(ptr + 1);
+            ret.val = this.read_string(ptrBox);
         } else if (tag === this.type_tag.Ref) {
             ret.isRef = true;
-            ret.val = this.read_u32(ptr + 1);
+            ret.val = this.read_u32(ptrBox);
         }
 
         return ret;
 
+    }
+
+    read_vals(len, ptr) {
+        const ptrBox = new this.ptrBox(ptr);
+        const vals = [];
+
+        for (let nr = 0; nr < len; nr++) {
+            const val = this._read_val(ptrBox);
+            vals.push(val);
+        }
+
+        return vals;
     }
 
 }
