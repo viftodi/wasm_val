@@ -35,3 +35,11 @@ pub extern "C" fn call_new_one_arg() -> () {
 
     constructor_one_arg.new_with_arg("a value");
 }
+
+#[no_mangle]
+pub extern "C" fn call_new_multiple_args() -> () {
+    let constructor_container = JsValue::get_global("constructor_container");
+    let constructor_one_arg = constructor_container.get_val("multiple_args").unwrap();
+
+    constructor_one_arg.new_with_args(&[&3.14, &"a value", &true, &-23_i16]);
+}

@@ -13,6 +13,7 @@ const private_context = {
     constructor_one_arg_called: false,
     constructor_this_val_expected: 42,
     constructor_one_arg_val: null,
+    constructor_multiple_args_val: null,
 }
 
 const context = {
@@ -30,6 +31,11 @@ const context = {
         one_arg: function (arg) {
             if (new.target) {
                 private_context.constructor_one_arg_val = arg;
+            }
+        },
+        multiple_args: function () {
+            if (new.target) {
+                private_context.constructor_multiple_args_val = arguments;
             }
         }
     },
@@ -59,11 +65,18 @@ export default function setupTestCallNew() {
         });
 
         it("calls a constructor with one arg ", function () {
-            const constructor_container = context.constructor_container;
-
             chai.expect(private_context.constructor_one_arg_val).to.equal(null);
             instance.exports.call_new_one_arg();
             chai.expect(private_context.constructor_one_arg_val).to.equal("a value");
+        });
+
+        it("calls a constructor with multiple args ", function () {
+            chai.expect(private_context.constructor_multiple_args_val).to.equal(null);
+            instance.exports.call_new_multiple_args();
+            chai.expect(private_context.constructor_multiple_args_val[0]).to.equal(3.14);
+            chai.expect(private_context.constructor_multiple_args_val[1]).to.equal("a value");
+            chai.expect(private_context.constructor_multiple_args_val[2]).to.equal(true);
+            chai.expect(private_context.constructor_multiple_args_val[3]).to.equal(-23);
         });
     });
 }
