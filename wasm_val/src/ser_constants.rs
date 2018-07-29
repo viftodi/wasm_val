@@ -26,6 +26,8 @@ pub enum TypeTag {
     Function = 14,
     Ref = 15,
     Lambda = 16,
-    Error = 17,
-    Unknown = 18,
+    LambdaArg = 17,
+    LambdaArgs = 18,
+    Error = 19,
+    Unknown = 20,
 }

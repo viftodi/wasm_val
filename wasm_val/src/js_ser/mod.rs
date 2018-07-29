@@ -11,6 +11,8 @@ use ser_constants::TypeTag;
 
 use byteorder::{LittleEndian, WriteBytesExt,};
 
+use super::JsValue;
+
 mod js_val;
 mod num;
 
@@ -37,5 +39,25 @@ impl<'a> JsSerializable for &'a str {
         cursor.write_u8(TypeTag::String as u8).unwrap();
         cursor.write_u32::<LittleEndian>(self.len() as u32).unwrap();
         cursor.write_u32::<LittleEndian>(self.as_ptr() as u32).unwrap();
+    }
+}
+
+impl JsSerializable for &'static Fn() -> () {
+    fn size(&self) -> u32 { 5 }
+
+    fn ser(&self, cursor: &mut Cursor<Vec<u8>>) -> () {
+        cursor.write_u8(TypeTag::Lambda as u8).unwrap();
+        let id = super::register_callback(*self);
+        cursor.write_u32::<LittleEndian>(id).unwrap();
+    }
+}
+
+impl JsSerializable for &'static Fn(JsValue) -> () {
+    fn size(&self) -> u32 { 5 }
+
+    fn ser(&self, cursor: &mut Cursor<Vec<u8>>) -> () {
+        cursor.write_u8(TypeTag::LambdaArg as u8).unwrap();
+        let id = super::register_callback_arg(*self);
+        cursor.write_u32::<LittleEndian>(id).unwrap();
     }
 }

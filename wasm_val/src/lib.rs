@@ -7,6 +7,8 @@
 // except according to those terms.
 
 use std::io::Cursor;
+use std::cell::RefCell;
+use std::collections::HashMap;
 
 mod wasm_ffi;
 mod rust_exports;
@@ -32,6 +34,57 @@ pub extern "C" fn wasm_val_rust_alloc(capacity: u32) -> *mut u8 {
 #[no_mangle]
 pub extern "C" fn wasm_val_get_api_version() -> u32 {
     rust_exports::get_api_version()
+}
+
+thread_local! {
+    static CALLBACKS_KEY: RefCell<HashMap<u32, Box<dyn Fn()>>> = RefCell::new(HashMap::new());
+    static CALLBACKS_ARG_KEY: RefCell<HashMap<u32, Box<dyn Fn(JsValue)>>> = RefCell::new(HashMap::new());
+    static LAST_CALLBACK_ID_KEY: RefCell<u32> = RefCell::new(1);
+}
+
+#[no_mangle]
+pub extern "C" fn wasm_val_call_registered_callback(key: u32) -> () {
+    CALLBACKS_KEY.with(|callbacks_cell| {
+        (callbacks_cell.borrow()[&key])()
+    })
+}
+
+#[no_mangle]
+pub extern "C" fn wasm_val_call_registered_callback_arg(key: u32, ptr: *mut u8) -> () {
+    let vec = unsafe { Vec::from_raw_parts(ptr, wasm_ffi::SINGLE_VAL_VEC_LEN, wasm_ffi::SINGLE_VAL_VEC_LEN) };
+    let val = JsValue::get_single_val(vec);
+    
+    CALLBACKS_ARG_KEY.with(|callbacks_cell| {
+        (callbacks_cell.borrow()[&key])(val)
+    })
+}
+
+fn get_next_callback_id() -> u32 {
+    LAST_CALLBACK_ID_KEY.with(|last_callback_id_cell| {
+        let id = *last_callback_id_cell.borrow();
+
+        last_callback_id_cell.replace(id + 1);
+
+        id
+    })
+}
+
+fn register_callback(callback:  &'static Fn() -> ()) -> u32  {
+        CALLBACKS_KEY.with(|callbacks_cell| {
+            let id = get_next_callback_id();
+            callbacks_cell.borrow_mut().insert(id, Box::new(callback));
+
+            id
+        })
+}
+
+fn register_callback_arg(callback:  &'static Fn(JsValue) -> ()) -> u32  {
+        CALLBACKS_ARG_KEY.with(|callbacks_cell| {
+            let id = get_next_callback_id();
+            callbacks_cell.borrow_mut().insert(id, Box::new(callback));
+
+            id
+        })
 }
 
 pub struct JsValue {
