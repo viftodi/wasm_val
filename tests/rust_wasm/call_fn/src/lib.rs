@@ -11,13 +11,19 @@ extern crate wasm_val;
 use wasm_val::JsValue;
 
 #[no_mangle]
+pub extern "C" fn call_global_fn_no_args() -> () {
+    let global_fn_no_args = JsValue::get_global("global_fn_no_args");
+
+    global_fn_no_args.call();
+}
+
+#[no_mangle]
 pub extern "C" fn call_fn_no_args() -> () {
     let fn_container = JsValue::get_global("fn_container");
     let fn_no_args = fn_container.get_val("fn_no_args").unwrap();
 
     fn_no_args.call();
 }
-
 
 #[no_mangle]
 pub extern "C" fn call_fn_no_args_return() -> () {

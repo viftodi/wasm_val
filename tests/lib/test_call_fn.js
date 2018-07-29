@@ -9,6 +9,8 @@
 import getTestModule from "/lib/test_helper.js";
 
 const private_context = {
+    global_fn_no_args_called: false,
+    global_fn_no_args_this: null,
     fn_no_args_called: false,
     fn_no_args_this: null,
     fn_no_args_return_called: false,
@@ -34,6 +36,10 @@ const private_context = {
 }
 
 const context = {
+    global_fn_no_args: function () {
+        private_context.global_fn_no_args_called = true;
+        private_context.global_fn_no_args_this = this;
+    },
     fn_container: {
         fn_no_args: function () {
             private_context.fn_no_args_called = true;
@@ -89,6 +95,14 @@ export default function setupTestCallFunction() {
 
         // Code is very repetitive; 
         // TODO Refactor to a function that takes the property name as arg and does the rest
+
+        it("can call a global function with no args", function() {
+            chai.expect(private_context.global_fn_no_args_called).to.equal(false);
+            chai.expect(private_context.global_fn_no_args_this).to.equal(null);
+            instance.exports.call_global_fn_no_args();
+            chai.expect(private_context.global_fn_no_args_called).to.equal(true);
+            chai.expect(private_context.global_fn_no_args_this).to.equal(context);
+        });
 
         it("can call a function with no args", function () {
             chai.expect(private_context.fn_no_args_called).to.equal(false);
