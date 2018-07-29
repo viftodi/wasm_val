@@ -32,10 +32,8 @@ export class WasmValModule {
                 drop_val: this.drop_val.bind(this),
             }
         }
-        this.textDecoder = new TextDecoder('utf8');
         this.last_ref_id = 1;
         this.refs = new Map();
-
     }
 
     run() {
@@ -103,7 +101,7 @@ export class WasmValModule {
     _write_val(val, parent) {
         const ptr = this.rust_alloc(9);
         const boxedVal = this._prepare_val(val, parent);
-        
+
         this.serializer.write_val(ptr, boxedVal.val, boxedVal.ref_id);
 
         return ptr;
@@ -127,10 +125,7 @@ export class WasmValModule {
     }
 
     _get_str(strLen, strPtr) {
-        const strBytes = this.buff.subarray(strPtr, strPtr + strLen);
-        const str = this.textDecoder.decode(strBytes);
-
-        return str;
+        return this.serializer.read_string_(strLen, strPtr);
     }
 
     get_val_global(strLen, namePtr) {

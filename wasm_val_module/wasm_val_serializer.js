@@ -6,6 +6,8 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
+import { MapCache } from "./map_cache.js"
+
 export class Serializer {
 
     static get type_tag() {
@@ -65,6 +67,10 @@ export class Serializer {
 
         this.wasmModule = wasmModule;
         this.allocFn = allocFn;
+        // Not sure this is 100% correct
+        this.allocBarrier = allocFn(1); // TODO maybe free this someday
+
+        this.stringCache = new MapCache(128); // TODO make it possible to customize the size
 
         const typeSize = Serializer.type_size;
 
@@ -306,13 +312,28 @@ export class Serializer {
         return this.f64_helper.view_f64[0];
     }
 
-    read_string(ptrBox) {
-        const strLen = this.read_u32(ptrBox);
-        const strPtr = this.read_u32(ptrBox);
+    _read_string(strPtr, strLen) {
         const strBytes = this.buff.subarray(strPtr, strPtr + strLen);
         const str = this.textDecoder.decode(strBytes);
 
         return str;
+    }
+
+    read_string_(strLen, strPtr) {
+        if (strPtr < this.allocBarrier) {
+            return this.stringCache.getOrSet(strPtr, () => {
+                return this._read_string(strPtr, strLen);
+            })
+        } else {
+            return this._read_string(strPtr, strLen);
+        }
+    }
+
+    read_string(ptrBox) {
+        const strLen = this.read_u32(ptrBox);
+        const strPtr = this.read_u32(ptrBox);
+
+        return this.read_string_(strLen, strPtr);
     }
 
     read_lambda(ptrBox) {
