@@ -28,14 +28,15 @@ Below is an example demonstrating various features:
 
 ```rust
 // You can obtain a value from the global context
-let document = JsValue::get_global("document"); 
+let document = JsValue::get_global("document");
+let body = document.get_val("body").unwrap(); 
 // And get a property of such a value
 let title = document.get_val("title").unwrap().as_str().unwrap();
 let from_rust = format!("Hello from rust <3 your title is: {}", title);
 // You can also call a constructor
 let textNode = document.call_method_with_arg("createTextNode", from_rust.as_str()).unwrap();
 // Pass a previously obtained javascript value back to javascript
-document.get_val("body").unwrap().call_method_with_arg("appendChild", textNode);
+body.call_method_with_arg("appendChild", textNode);
 
 // If you plan to call a function multiple times for efficiently reasons you can obtain a reference to it:
 let console = JSValue::get_global("console");
@@ -44,6 +45,16 @@ let console_log = console.get_val("log").unwrap();
 console_log.call_with_arg("Hello world");
 console_log.call_with_args(&[&"hello world", &true, &" ", &3.14]);
 
+// You can also pass a closure on the javascript side, useful for registering callbacks
+const CLOSURE: &dyn Fn(JsValue) -> () = &|val: JsValue| {
+    let key_code = val.get_val("keyCode").unwrap();
+
+    let console = JsValue::get_global("console");
+
+    console.call_method_with_args("log", &["Keydown pressed :", &key_code]);
+};
+
+body.call_method_with_args("addEventListener", &[&"keydown", &CLOSURE]);
 ```
 
 The following types can be send from rust to javascript:
@@ -52,6 +63,7 @@ The following types can be send from rust to javascript:
  - primitive numeric types (except i64/u64)
  - str
  - JsValue (values obtained from javascript)
+ - Fn() -> () and Fn(JSValue) -> () that are useful mostly to register event callbacks
 
 ## Examples
 
@@ -60,6 +72,7 @@ There are multiple examples provided in the examples folder :
  - clock : makes use of the ability to call constructors and shows a basic animation managed by javascript
  - create_element : showcases mainly the ability to call functions with multiple parameters
  - canvas_animate_solar_system : A more complete example that has been adapted from the canvas animation example on mozilla's site.
+ - register_event_callback : Register callbacks on the rust side to animate the movement of a rectangle in a canvas
 
 ## Get started
 
@@ -67,11 +80,17 @@ The project has two parts: wasm-val the rust library that provides the API and w
 
 ###  On the rust side
 
+If you haven't done it already, add the wasm32-unknown-unknown target via rustup:
+
+```bash
+rustup target add wasm32-unknown-unknown
+```
+
 Add the wasm_val depencendy to your Cargo.toml
 
 ```toml
 [dependencies]
-wasm_val = "0.3.0"
+wasm_val = "0.3.1"
 ```
 
 It is also important to also declare your rust project type as cdylib.
@@ -115,7 +134,7 @@ Assuming you're in the folder where your web-app resides.
 Firstly either install the wasm-val-module using npm :
 
 ```bash
-npm install wasm_val_module@0.3.0
+npm install wasm_val_module@0.3.1
 
 ```
 
