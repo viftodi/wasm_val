@@ -27,8 +27,10 @@ export class Serializer {
             Function: 14,
             Ref: 15,
             Lambda: 16,
-            Error: 17,
-            Unknown: 18, // To be used for sanity checks
+            LambdaArg: 17,
+            LambdaArgs: 18,
+            Error: 19,
+            Unknown: 20, // To be used for sanity checks
         }
     };
 
@@ -143,6 +145,14 @@ export class Serializer {
 
     get buff() {
         return this.wasmModule.buff;
+    }
+
+    get_rust_lambda_callback(key) {
+        return this.wasmModule.get_rust_lambda_callback(key);
+    }
+
+    get_rust_lambda_callback_arg(key) {
+        return this.wasmModule.get_rust_lambda_callback_arg(key);
     }
 
     get_size_val(val) {
@@ -305,6 +315,18 @@ export class Serializer {
         return str;
     }
 
+    read_lambda(ptrBox) {
+        const key = this.read_u32(ptrBox);
+
+        return this.get_rust_lambda_callback(key);
+    }
+
+    read_lambda_arg(ptrBox) {
+        const key = this.read_u32(ptrBox);
+
+        return this.get_rust_lambda_callback_arg(key);
+    }
+
     read_val(ptr) {
         const ptrBox = new this.ptrBox(ptr);
 
@@ -344,6 +366,10 @@ export class Serializer {
         } else if (tag === this.type_tag.Ref) {
             ret.isRef = true;
             ret.val = this.read_u32(ptrBox);
+        } else if (tag === this.type_tag.Lambda) {
+            ret.val = this.read_lambda(ptrBox);
+        } else if (tag === this.type_tag.LambdaArg) {
+            ret.val = this.read_lambda_arg(ptrBox);
         }
 
         return ret;
