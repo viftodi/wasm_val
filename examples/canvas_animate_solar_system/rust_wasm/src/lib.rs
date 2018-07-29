@@ -11,8 +11,6 @@ extern crate wasm_val;
 
 use wasm_val::{JsValue};
 
-
-
 lazy_static! {
     static ref DATE_CONSTRUCTOR: JsValue = {
         JsValue::get_global("Date")

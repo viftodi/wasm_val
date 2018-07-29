@@ -1,5 +1,5 @@
 {
   "dependencies": {
-    "wasm_val_module": "0.3.0"
+    "wasm_val_module": "0.3.1"
   }
 }
