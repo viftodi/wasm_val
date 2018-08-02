@@ -24,15 +24,22 @@ export class Serializer {
             F32: 9,
             F64: 10,
             String: 11,
-            TypedArray: 12,
-            Object: 13,
-            Function: 14,
-            Ref: 15,
-            Lambda: 16,
-            LambdaArg: 17,
-            LambdaArgs: 18,
-            Error: 19,
-            Unknown: 20, // To be used for sanity checks
+            TypedArrayI8: 12,
+            TypedArrayU8: 13,
+            TypedArrayI16: 14,
+            TypedArrayU16: 15,
+            TypedArrayI32: 16,
+            TypedArrayU32: 17,
+            TypedArrayF32: 18,
+            TypedArrayF64: 19,
+            Object: 20,
+            Function: 21,
+            Ref: 22,
+            Lambda: 23,
+            LambdaArg: 24,
+            LambdaArgs: 25,
+            Error: 26,
+            Unknown: 27, // To be used for sanity checks
         }
     };
 
@@ -348,6 +355,62 @@ export class Serializer {
         return this.get_rust_lambda_callback_arg(key);
     }
 
+    read_typed_array_i8(ptrBox) {
+        const len = this.read_u32(ptrBox);
+        const ptr = this.read_u32(ptrBox);
+
+        return new Int8Array(this.buff.buffer, ptr, len);
+    }
+
+    read_typed_array_u8(ptrBox) {
+        const len = this.read_u32(ptrBox);
+        const ptr = this.read_u32(ptrBox);
+
+        return new Uint8Array(this.buff.buffer, ptr, len);
+    }
+
+    read_typed_array_i16(ptrBox) {
+        const len = this.read_u32(ptrBox);
+        const ptr = this.read_u32(ptrBox);
+
+        return new Int16Array(this.buff.buffer, ptr, len);
+    }
+
+    read_typed_array_u16(ptrBox) {
+        const len = this.read_u32(ptrBox);
+        const ptr = this.read_u32(ptrBox);
+
+        return new Uint16Array(this.buff.buffer, ptr, len);
+    }
+
+    read_typed_array_i32(ptrBox) {
+        const len = this.read_u32(ptrBox);
+        const ptr = this.read_u32(ptrBox);
+
+        return new Int32Array(this.buff.buffer, ptr, len);
+    }
+
+    read_typed_array_u32(ptrBox) {
+        const len = this.read_u32(ptrBox);
+        const ptr = this.read_u32(ptrBox);
+
+        return new Uint32Array(this.buff.buffer, ptr, len);
+    }
+
+    read_typed_array_f32(ptrBox) {
+        const len = this.read_u32(ptrBox);
+        const ptr = this.read_u32(ptrBox);
+
+        return new Float32Array(this.buff.buffer, ptr, len);
+    }
+
+    read_typed_array_f64(ptrBox) {
+        const len = this.read_u32(ptrBox);
+        const ptr = this.read_u32(ptrBox);
+
+        return new Float64Array(this.buff.buffer, ptr, len);
+    }
+
     read_val(ptr) {
         const ptrBox = new this.ptrBox(ptr);
 
@@ -391,10 +454,25 @@ export class Serializer {
             ret.val = this.read_lambda(ptrBox);
         } else if (tag === this.type_tag.LambdaArg) {
             ret.val = this.read_lambda_arg(ptrBox);
+        } else if (tag === this.type_tag.TypedArrayI8) {
+            ret.val = this.read_typed_array_i8(ptrBox);
+        } else if (tag === this.type_tag.TypedArrayU8) {
+            ret.val = this.read_typed_array_u8(ptrBox);
+        } else if (tag === this.type_tag.TypedArrayI16) {
+            ret.val = this.read_typed_array_i16(ptrBox);
+        } else if (tag === this.type_tag.TypedArrayU16) {
+            ret.val = this.read_typed_array_u16(ptrBox);
+        } else if (tag === this.type_tag.TypedArrayI32) {
+            ret.val = this.read_typed_array_i32(ptrBox);
+        } else if (tag === this.type_tag.TypedArrayU32) {
+            ret.val = this.read_typed_array_u32(ptrBox);
+        } else if (tag === this.type_tag.TypedArrayF32) {
+            ret.val = this.read_typed_array_f32(ptrBox);
+        } else if (tag === this.type_tag.TypedArrayF64) {
+            ret.val = this.read_typed_array_f64(ptrBox);
         }
 
         return ret;
-
     }
 
     read_vals(len, ptr) {

@@ -11,7 +11,7 @@ import { Serializer } from './wasm_val_serializer.js';
 export class WasmValModule {
 
     constructor(wasmFile, context, options, ) {
-        this.apiVersion = 5;
+        this.apiVersion = 6;
         this.wasmFile = wasmFile;
         this.options = options;
         this.context = context;
