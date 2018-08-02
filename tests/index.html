@@ -10,7 +10,7 @@
         mocha.setup('bdd');
 
         import setupTestExports from "/lib/test_exports.js";
-        setupTestExports();
+        //setupTestExports();
 
         import setupTestGetThenSet from "/lib/test_get_then_set.js";
         setupTestGetThenSet();
@@ -26,6 +26,9 @@
 
         import setupTestEventCallback from "/lib/test_event_callback.js";
         setupTestEventCallback();
+
+        import setupTestSetTypedArray from "/lib/test_set_typed_array.js";
+        setupTestSetTypedArray();
 
         mocha.checkLeaks();
         mocha.run();

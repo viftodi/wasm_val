@@ -1,5 +1,5 @@
 [package]
-name = "call_new"
+name = "set_typed_array"
 version = "1.0.0"
 authors = ["Vladimir Iftodi <Vladimir.Iftodi@gmail.com>"]
 
