@@ -15,6 +15,7 @@ use super::JsValue;
 
 mod js_val;
 mod num;
+mod num_slice;
 
 pub trait JsSerializable {
     fn size(&self) -> u32;
