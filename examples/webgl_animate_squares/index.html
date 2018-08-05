@@ -1,0 +1,32 @@
+<html>
+
+<head>
+    <title>Webgl animate squares</title>
+
+    <script type="module">
+        import { WasmValModule } from "/node_modules/wasm_val_module/wasm_val_module.js";
+
+        const mod = new WasmValModule('rust_wasm/target/wasm32-unknown-unknown/release/wasm_webgl_animate_squares.wasm', window);
+        mod.run()
+            .then((instance) => {
+                instance.exports.init();
+
+                const animate = function () {
+                    instance.exports.draw();
+
+                    requestAnimationFrame(() => animate());
+                }
+
+                animate();
+            });
+
+    </script>
+
+</head>
+
+<body>
+    <h2>Click on the cavas to add a random animated square</h2>
+    <canvas id="canvas" width="800" height="800"></canvas>
+</body>
+
+</html>
