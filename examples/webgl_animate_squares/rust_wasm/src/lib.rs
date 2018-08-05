@@ -13,7 +13,12 @@ extern crate wasm_val;
 use std::sync::Mutex;
 use wasm_val::JsValue;
 
-struct Rect { x: f32, y: f32, size: f32, min_size: f32, max_size: f32, r: f32, g: f32, b:f32, grow_speed: f32, growing: bool }
+struct Rect {
+    x: f32, y: f32,
+    size: f32, min_size: f32, max_size: f32,
+    r: f32, g: f32, b: f32,
+    grow_speed: f32, growing: bool,
+}
 
 const VERTEX_SHADER_SRC: &str = r#"#version 300 es
 in vec2 in_position;
@@ -46,7 +51,6 @@ lazy_static! {
 
         random
     };
-
     static ref GL_CONTEXT: JsValue = {
         let document = JsValue::get_global("document");
         let canvas = document
@@ -58,13 +62,17 @@ lazy_static! {
     };
     static ref GL_PROGRAM: JsValue = {
         let program = GL_CONTEXT.call_method("createProgram").unwrap();
-        let vertex_shader = GL_CONTEXT.call_method_with_arg("createShader", GL_CONTEXT.get_val("VERTEX_SHADER").unwrap()).unwrap();
+        let vertex_shader = GL_CONTEXT
+            .call_method_with_arg("createShader", GL_CONTEXT.get_val("VERTEX_SHADER").unwrap())
+            .unwrap();
 
         GL_CONTEXT.call_method_with_args("shaderSource", &[&vertex_shader, &VERTEX_SHADER_SRC]);
         GL_CONTEXT.call_method_with_args("compileShader", &[&vertex_shader]);
         GL_CONTEXT.call_method_with_args("attachShader", &[&program, &vertex_shader]);
 
-        let fragment_shader = GL_CONTEXT.call_method_with_arg("createShader", GL_CONTEXT.get_val("FRAGMENT_SHADER").unwrap()).unwrap();
+        let fragment_shader = GL_CONTEXT
+            .call_method_with_arg("createShader", GL_CONTEXT.get_val("FRAGMENT_SHADER").unwrap())
+            .unwrap();
 
         GL_CONTEXT.call_method_with_args("shaderSource", &[&fragment_shader, &FRAGMENT_SHADER_SRC]);
         GL_CONTEXT.call_method_with_args("compileShader", &[&fragment_shader]);
@@ -73,36 +81,35 @@ lazy_static! {
 
         program
     };
-
-    static ref COLOR_UNI_LOCATION : JsValue = {
+    static ref COLOR_UNI_LOCATION: JsValue = {
         let color_uni_location = GL_CONTEXT
             .call_method_with_args("getUniformLocation", &[&(*GL_PROGRAM), &"un_color"])
             .unwrap();
 
         color_uni_location
     };
-
     static ref RECTS: Mutex<Vec<Rect>> = Mutex::new(Vec::new());
 }
 
 fn get_rand() -> f64 {
     MATH_RANDOM.call().unwrap().as_number().unwrap()
 }
- 
+
 fn get_rand_bound(lower: f64, upper: f64) -> f64 {
     let rand = get_rand();
 
-    return lower + rand * (upper - lower)
+    return lower + rand * (upper - lower);
 }
 
 fn init_event_handler() -> () {
     let document = JsValue::get_global("document");
-    let canvas = document.call_method_with_arg("getElementById", "canvas").unwrap();
+    let canvas = document
+        .call_method_with_arg("getElementById", "canvas")
+        .unwrap();
 
     const CLICK_CLOSURE: &dyn Fn(JsValue) -> () = &|val: JsValue| {
         let x = val.get_val("offsetX").unwrap().as_number().unwrap() as f32;
         let y = val.get_val("offsetY").unwrap().as_number().unwrap() as f32;
-
         let mut rects = RECTS.lock().unwrap();
         let min_size = get_rand_bound(20., 50.) as f32;
         let max_size = get_rand_bound(min_size as f64 + 15., 100.) as f32;
@@ -111,12 +118,12 @@ fn init_event_handler() -> () {
         let r = get_rand() as f32;
         let g = get_rand() as f32;
         let b = get_rand() as f32;
-        let rect = Rect { 
-            x: x, y: y, 
-            min_size: min_size, max_size:max_size, size: size, 
+        let rect = Rect {
+            x: x, y: y,
+            min_size: min_size, max_size: max_size, size: size,
             r: r, g: g, b: b,
             growing: true, grow_speed: grow_speed,
-            };
+        };
 
         rects.push(rect);
     };
@@ -124,29 +131,7 @@ fn init_event_handler() -> () {
     canvas.call_method_with_args("addEventListener", &[&"click", &CLICK_CLOSURE]);
 }
 
-fn prepare_rect(rect: &Rect) -> () {
-    let half_size = rect.size / 2_f32;
-    let x1: f32 = rect.x - half_size;
-    let x2: f32 = rect.x + half_size;
-    let y1: f32 = rect.y - half_size;
-    let y2: f32 = rect.y + half_size;
-
-    GL_CONTEXT.call_method_with_args("uniform4f", &[&(*COLOR_UNI_LOCATION), &rect.r, &rect.g, &rect.b, &1]);
-
-    let buffer_data: &[f32] = &[x1, y1, x2, y1, x1, y2, x1, y2, x2, y1, x2, y2];
-    GL_CONTEXT.call_method_with_args(
-        "bufferData",
-        &[
-            &GL_CONTEXT.get_val("ARRAY_BUFFER").unwrap(),
-            &buffer_data,
-            &GL_CONTEXT.get_val("STATIC_DRAW").unwrap(),
-        ],
-    );
-}
-
-#[no_mangle]
-pub extern "C" fn init() -> () {
-    init_event_handler();
+fn init_webgl() {
     let position_attr_location = GL_CONTEXT
         .call_method_with_args("getAttributeLocation", &[&(*GL_PROGRAM), &"in_position"])
         .unwrap();
@@ -177,8 +162,8 @@ pub extern "C" fn init() -> () {
     GL_CONTEXT.call_method_with_args(
         "vertexAttribPointer",
         &[
-            &position_attr_location, &size,
-            &data_type, &normalize,
+            &position_attr_location,
+            &size, &data_type, &normalize,
             &0, &0,
         ],
     );
@@ -189,25 +174,56 @@ pub extern "C" fn init() -> () {
 }
 
 #[no_mangle]
+pub extern "C" fn init() -> () {
+    init_event_handler();
+    init_webgl();
+}
+
+fn prepare_rect(rect: &Rect) -> () {
+    let half_size = rect.size / 2_f32;
+    let x1: f32 = rect.x - half_size;
+    let x2: f32 = rect.x + half_size;
+    let y1: f32 = rect.y - half_size;
+    let y2: f32 = rect.y + half_size;
+
+    GL_CONTEXT.call_method_with_args(
+        "uniform4f",
+        &[&(*COLOR_UNI_LOCATION), &rect.r, &rect.g, &rect.b, &1],
+    );
+
+    let buffer_data: &[f32] = &[x1, y1, x2, y1, x1, y2, x1, y2, x2, y1, x2, y2];
+    GL_CONTEXT.call_method_with_args(
+        "bufferData",
+        &[
+            &GL_CONTEXT.get_val("ARRAY_BUFFER").unwrap(),
+            &buffer_data,
+            &GL_CONTEXT.get_val("STATIC_DRAW").unwrap(),
+        ],
+    );
+}
+
+fn update_rect(rect: &mut Rect) -> () {
+    if rect.growing {
+        rect.size = rect.size + rect.grow_speed;
+        if rect.size >= rect.max_size {
+            rect.growing = false;
+        }
+    } else {
+        rect.size = rect.size - rect.grow_speed;
+        if rect.size <= rect.min_size {
+            rect.growing = true;
+        }
+    }
+}
+
+#[no_mangle]
 pub extern "C" fn draw() -> () {
     let mut rects = RECTS.lock().unwrap();
 
     for rect in rects.iter_mut() {
         prepare_rect(rect);
+        update_rect(rect);
 
-        if rect.growing {
-            rect.size = rect.size + rect.grow_speed;
-            if rect.size >= rect.max_size {
-                rect.growing = false;
-            }
-        } else {
-            rect.size = rect.size - rect.grow_speed;
-            if rect.size <= rect.min_size {
-                rect.growing = true;
-            }
-        }
-
-        //rect.size = rect.size + 0.3;
         GL_CONTEXT.call_method_with_args(
             "drawArrays",
             &[&GL_CONTEXT.get_val("TRIANGLES").unwrap(), &0, &6],
