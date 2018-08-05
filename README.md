@@ -71,12 +71,13 @@ There are multiple examples provided in the examples folder :
  - hello_world : shows the ability to get and set values, as well as call functions.
  - clock : makes use of the ability to call constructors and shows a basic animation managed by javascript
  - create_element : showcases mainly the ability to call functions with multiple parameters
- - canvas_animate_solar_system : A more complete example that has been adapted from the canvas animation example on mozilla's site.
+ - canvas_animate_solar_system : A more complete example that has been adapted from the canvas animation example on mozilla's site
  - register_event_callback : Register callbacks on the rust side to animate the movement of a rectangle in a canvas
+ - webgl_animate_squares : On click add a random animate square. Makes use of the ability to pass TypedArrays to javascript
 
 ## Get started
 
-The project has two parts: wasm-val the rust library that provides the API and wasm-val-module which is the javascript counterpart that does the proper serialization.
+The project has two parts: wasm_val the rust library that provides the API and wasm_val_module which is the javascript counterpart that does the proper serialization.
 
 ###  On the rust side
 
@@ -90,7 +91,7 @@ Add the wasm_val depencendy to your Cargo.toml
 
 ```toml
 [dependencies]
-wasm_val = "0.3.1"
+wasm_val = "0.3.2"
 ```
 
 It is also important to also declare your rust project type as cdylib.
@@ -131,10 +132,10 @@ cargo build --target=wasm32-unknown-unknown --release
 
 Assuming you're in the folder where your web-app resides.
 
-Firstly either install the wasm-val-module using npm :
+Firstly either install the wasm_val_module using npm :
 
 ```bash
-npm install wasm_val_module@0.3.1
+npm install wasm_val_module@0.3.3
 
 ```
 
