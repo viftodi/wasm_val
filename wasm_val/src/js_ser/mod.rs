@@ -11,7 +11,7 @@ use ser_constants::TypeTag;
 
 use byteorder::{LittleEndian, WriteBytesExt,};
 
-use super::JsValue;
+use JsValue;
 
 mod js_val;
 mod num;
