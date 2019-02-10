@@ -91,7 +91,7 @@ Add the wasm_val depencendy to your Cargo.toml
 
 ```toml
 [dependencies]
-wasm_val = "0.3.2"
+wasm_val = "0.3.3"
 ```
 
 It is also important to also declare your rust project type as cdylib.

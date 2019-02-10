@@ -7,6 +7,7 @@
 // except according to those terms.
 
 use std::cell::RefCell;
+use std::rc::Rc;
 use std::collections::HashMap;
 
 mod wasm_ffi;
@@ -33,16 +34,20 @@ pub extern "C" fn wasm_val_get_api_version() -> u32 {
 }
 
 thread_local! {
-    static CALLBACKS_KEY: RefCell<HashMap<u32, Box<dyn Fn()>>> = RefCell::new(HashMap::new());
-    static CALLBACKS_ARG_KEY: RefCell<HashMap<u32, Box<dyn Fn(JsValue)>>> = RefCell::new(HashMap::new());
+    static CALLBACKS_KEY: RefCell<HashMap<u32, Rc<dyn Fn()>>> = RefCell::new(HashMap::new());
+    static CALLBACKS_ARG_KEY: RefCell<HashMap<u32, Rc<dyn Fn(JsValue)>>> = RefCell::new(HashMap::new());
     static LAST_CALLBACK_ID_KEY: RefCell<u32> = RefCell::new(1);
 }
 
 #[no_mangle]
 pub extern "C" fn wasm_val_call_registered_callback(key: u32) -> () {
-    CALLBACKS_KEY.with(|callbacks_cell| {
-        (callbacks_cell.borrow()[&key])()
-    })
+    let callback = CALLBACKS_KEY.with(|callbacks_cell| {
+        let map = callbacks_cell.borrow();
+
+        map[&key].clone()
+    });
+
+    callback()
 }
 
 #[no_mangle]
@@ -50,9 +55,13 @@ pub extern "C" fn wasm_val_call_registered_callback_arg(key: u32, ptr: *mut u8) 
     let vec = unsafe { Vec::from_raw_parts(ptr, wasm_ffi::SINGLE_VAL_VEC_LEN, wasm_ffi::SINGLE_VAL_VEC_LEN) };
     let val = JsValue::get_single_val(vec);
     
-    CALLBACKS_ARG_KEY.with(|callbacks_cell| {
-        (callbacks_cell.borrow()[&key])(val)
-    })
+    let callback = CALLBACKS_ARG_KEY.with(|callbacks_cell| {
+        let map = callbacks_cell.borrow();
+        
+        map[&key].clone()
+    });
+
+    callback(val)
 }
 
 fn get_next_callback_id() -> u32 {
@@ -68,7 +77,7 @@ fn get_next_callback_id() -> u32 {
 fn register_callback(callback:  &'static Fn() -> ()) -> u32  {
         CALLBACKS_KEY.with(|callbacks_cell| {
             let id = get_next_callback_id();
-            callbacks_cell.borrow_mut().insert(id, Box::new(callback));
+            callbacks_cell.borrow_mut().insert(id, Rc::new(callback));
 
             id
         })
@@ -77,7 +86,7 @@ fn register_callback(callback:  &'static Fn() -> ()) -> u32  {
 fn register_callback_arg(callback:  &'static Fn(JsValue) -> ()) -> u32  {
         CALLBACKS_ARG_KEY.with(|callbacks_cell| {
             let id = get_next_callback_id();
-            callbacks_cell.borrow_mut().insert(id, Box::new(callback));
+            callbacks_cell.borrow_mut().insert(id, Rc::new(callback));
 
             id
         })

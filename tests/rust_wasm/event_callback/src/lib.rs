@@ -36,3 +36,20 @@ pub extern "C" fn register_callback_one_arg() -> () {
 
     container.call_method_with_arg("register_callback_one_arg", CLOSURE);
 }
+
+#[no_mangle]
+pub extern "C" fn register_nested_callbacks() -> () {
+    let container = JsValue::get_global("container");
+
+    const FIRST_CALBACK: &dyn Fn(JsValue) -> () = &|val:JsValue| {
+        val.call_with_arg(SECOND_CALBACK);
+    };
+
+    const SECOND_CALBACK: &dyn Fn(JsValue) -> () = &|val:JsValue| {
+        let container = JsValue::get_global("container");
+
+        container.set_val("nested_callback_rust_val", val);
+    };
+
+    container.call_method_with_arg("register_first_nested_callback", FIRST_CALBACK);
+}
