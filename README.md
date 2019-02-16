@@ -91,7 +91,7 @@ Add the wasm_val depencendy to your Cargo.toml
 
 ```toml
 [dependencies]
-wasm_val = "0.3.3"
+wasm_val = "0.3.4"
 ```
 
 It is also important to also declare your rust project type as cdylib.
@@ -135,7 +135,7 @@ Assuming you're in the folder where your web-app resides.
 Firstly either install the wasm_val_module using npm :
 
 ```bash
-npm install wasm_val_module@0.3.3
+npm install wasm_val_module@0.3.4
 
 ```
 
@@ -155,8 +155,26 @@ Then in your index.html or equivalent:
 </script>
 ````
 
-The WasmValModule constructor takes the path to the wasm file as well as a context object. 
+The WasmValModule constructor takes the path to the wasm file as well as a context object as well as an optional options object. 
 
 The context object is what provides the accessible javascript members on the rust side.
 
+The default options are:
+
+```javascript
+{
+    rust_panic: {
+        register_hook: true,
+        panic_fn: console.error,
+    }
+}
+```
+
+Consult the documentation of wasm_val_module for additional information.
+
 And hopefully that's it.
+
+
+## Known issues and limitations
+
+Currently rust closures send to the javascript side (such as event listeners) are never garbage collected. Use them sparingly. 

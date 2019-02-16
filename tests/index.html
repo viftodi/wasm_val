@@ -30,6 +30,9 @@
         import setupTestSetTypedArray from "/lib/test_set_typed_array.js";
         setupTestSetTypedArray();
 
+        import setupTestPanicHook from "/lib/test_panic_hook.js";
+        setupTestPanicHook(); 
+
         mocha.checkLeaks();
         mocha.run();
 

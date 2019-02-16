@@ -20,4 +20,5 @@ extern "C" {
     pub fn new_1(ref_id: u32, arg: *const u8) -> u32;
     pub fn new_args(ref_id: u32, args_len: u32, args: *const u8) -> u32;
     pub fn drop_val(val: u32);
+    pub fn panic_fn(str_len: u32, str: *const u8);
 }

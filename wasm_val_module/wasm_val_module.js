@@ -10,10 +10,20 @@ import { Serializer } from './wasm_val_serializer.js';
 
 export class WasmValModule {
 
+    static get defaultOptions() {
+        return {
+            rust_panic: {
+                register_hook: true,
+                panic_fn: console.error,
+            }
+        };
+    }
+
     constructor(wasmFile, context, options, ) {
-        this.apiVersion = 6;
+        this.apiVersion = 7;
         this.wasmFile = wasmFile;
-        this.options = options;
+        this.options = options || {};
+        this.mergeOptions(this.options, WasmValModule.defaultOptions)
         this.context = context;
         this.imports = {
             env: {
@@ -30,10 +40,21 @@ export class WasmValModule {
                 new_1: this.new_1.bind(this),
                 new_args: this.new_args.bind(this),
                 drop_val: this.drop_val.bind(this),
+                panic_fn: this.panic_fn.bind(this),
             }
         }
         this.last_ref_id = 1;
         this.refs = new Map();
+    }
+
+    mergeOptions(obj, base) {
+        for(const child of Object.keys(base)) {
+            if(!obj[child]) {
+                obj[child] = base[child];
+            } else if (obj[child] instanceof Object) {
+                this.mergeOptions(obj[child], base[child]);
+            }
+        }
     }
 
     run() {
@@ -61,6 +82,10 @@ export class WasmValModule {
                 this.rust_alloc = exports.wasm_val_rust_alloc;
                 this.buff_ = new Uint8Array(this.memory.buffer);
                 this.serializer = new Serializer(this, this.rust_alloc);
+
+                if(this.options.rust_panic.register_hook) {
+                    exports.wasm_val_register_panic_hook();
+                }
 
                 return Promise.resolve(instance);
             });
@@ -126,6 +151,12 @@ export class WasmValModule {
 
     _get_str(strLen, strPtr) {
         return this.serializer.read_string_(strLen, strPtr);
+    }
+
+    panic_fn(strLen, strPtr) {
+        const str = this._get_str(strLen, strPtr);
+
+        this.options.rust_panic.panic_fn(str);
     }
 
     get_val_global(strLen, namePtr) {

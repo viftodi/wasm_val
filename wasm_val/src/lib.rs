@@ -9,6 +9,7 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 use std::collections::HashMap;
+use std::panic::{self, PanicInfo};
 
 mod wasm_ffi;
 mod rust_exports;
@@ -31,6 +32,13 @@ pub extern "C" fn wasm_val_rust_alloc(capacity: u32) -> *mut u8 {
 #[no_mangle]
 pub extern "C" fn wasm_val_get_api_version() -> u32 {
     rust_exports::get_api_version()
+}
+
+#[no_mangle]
+pub extern "C" fn wasm_val_register_panic_hook() -> () {
+    panic::set_hook(Box::new(|panic_info: &PanicInfo| {
+        wasm_ffi::panic_fn(panic_info.to_string());
+    }));
 }
 
 thread_local! {

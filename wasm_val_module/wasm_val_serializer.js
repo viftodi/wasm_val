@@ -184,7 +184,7 @@ export class Serializer {
 
 
     write_bool(ptr, val) {
-        let tag = this.type_tag.Unknown; //Sanity
+        let tag;
         if (val === false) {
             tag = this.type_tag.BoolFalse;
         } else if (val === true) {

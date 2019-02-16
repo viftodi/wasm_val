@@ -104,3 +104,7 @@ pub fn new_args(ref_id: u32, args_len: u32, args: Vec<u8>) -> Vec<u8> {
 pub fn drop_var(ref_id: u32) -> () {
     unsafe { js_exports::drop_val(ref_id) }
 }
+
+pub fn panic_fn(str: String) -> () {
+    unsafe { js_exports::panic_fn(str.len() as u32, str.as_ptr()) }
+}

@@ -8,7 +8,8 @@
 
 import { WasmValModule } from "/node_modules/wasm_val_module/wasm_val_module.js";
 
-export default function getTestModule(wasmFile, context) {
+export default function getTestModule(wasmFile, context, options) {
     const path = `/rust_wasm/${wasmFile}/target/wasm32-unknown-unknown/release/${wasmFile}.wasm`;
-    return new WasmValModule(path, context).run();
+    
+    return new WasmValModule(path, context, options).run();
 }
