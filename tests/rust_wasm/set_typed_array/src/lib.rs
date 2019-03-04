@@ -1,4 +1,4 @@
-// Copyright 2018 Vladimir Iftodi <Vladimir.Iftodi@gmail.com>.
+// Copyright 2019 Vladimir Iftodi <Vladimir.Iftodi@gmail.com>.
 //
 // Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
 // http://www.apache.org/licenses/LICENSE-2.0> or the MIT license

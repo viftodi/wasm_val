@@ -1,6 +1,6 @@
 [package]
 name = "wasm_val"
-version = "0.3.4"
+version = "0.3.5"
 authors = ["Vladimir Iftodi <Vladimir.Iftodi@gmail.com>"]
 description = "Library that provides a typesafe API to call javascript from a wasm program"
 homepage = "https://github.com/viftodi/wasm_val"

@@ -1,4 +1,4 @@
-// Copyright 2018 Vladimir Iftodi <Vladimir.Iftodi@gmail.com>. 
+// Copyright 2019 Vladimir Iftodi <Vladimir.Iftodi@gmail.com>. 
 //
 // Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
 // http://www.apache.org/licenses/LICENSE-2.0> or the MIT license
@@ -61,6 +61,15 @@ impl JsValue {
         }
     }
 
+    pub fn ser_single_val(val: &JsSerializable) -> Vec<u8> {
+        let vec = Vec::with_capacity(wasm_ffi::SINGLE_VAL_VEC_LEN);
+        let mut cursor = Cursor::new(vec);
+
+        val.ser(&mut cursor);
+
+        cursor.into_inner()
+    }
+
     pub fn get_global(name: &str) -> JsValue {
         let vec = wasm_ffi::get_val_global(name);
 
@@ -82,12 +91,9 @@ impl JsValue {
     pub fn set_val<S>(&self, name: &str, val: S) -> () where S: JsSerializable {
         match self.val {
             Val::Ref(ref_id) => {
-                let mut vec = Vec::with_capacity(wasm_ffi::SINGLE_VAL_VEC_LEN);
-                let mut cursor = Cursor::new(vec);
+                let vec = JsValue::ser_single_val(&val);
 
-                val.ser(&mut cursor);
-
-                wasm_ffi::set_val(ref_id, name, cursor.into_inner());
+                wasm_ffi::set_val(ref_id, name, vec);
 
             }
             _ => ()

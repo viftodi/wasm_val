@@ -1,4 +1,4 @@
-// Copyright 2018 Vladimir Iftodi <Vladimir.Iftodi@gmail.com>. 
+// Copyright 2019 Vladimir Iftodi <Vladimir.Iftodi@gmail.com>. 
 //
 // Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
 // http://www.apache.org/licenses/LICENSE-2.0> or the MIT license
@@ -24,12 +24,8 @@ impl JsValue {
     pub fn call_with_arg<S>(&self, arg: S) -> Option<JsValue> where S: JsSerializable {
         match self {
             JsValue{js_type: Type::Function, val: Val::Ref(ref_id)} => {
-                let vec = Vec::with_capacity(9);
-                let mut cursor = Cursor::new(vec);
-
-                arg.ser(&mut cursor);
-
-                let ret_vec = wasm_ffi::call_1(*ref_id, cursor.into_inner());
+                let vec = JsValue::ser_single_val(&arg);
+                let ret_vec = wasm_ffi::call_1(*ref_id, vec);
 
                 Some(JsValue::get_single_val(ret_vec))
             },
@@ -70,12 +66,8 @@ impl JsValue {
     pub fn call_method_with_arg<S>(&self, name: &str, arg: S) -> Option<JsValue> where S: JsSerializable {
         match self.val {
             Val::Ref(ref_id)  => {
-                let vec = Vec::with_capacity(9);
-                let mut cursor = Cursor::new(vec);
-
-                arg.ser(&mut cursor);
-
-                let ret_vec = wasm_ffi::call_method_1(ref_id, name, cursor.into_inner());
+                let vec = JsValue::ser_single_val(&arg);
+                let ret_vec = wasm_ffi::call_method_1(ref_id, name, vec);
 
                 Some(JsValue::get_single_val(ret_vec))
             },

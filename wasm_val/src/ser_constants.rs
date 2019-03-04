@@ -1,4 +1,4 @@
-// Copyright 2018 Vladimir Iftodi <Vladimir.Iftodi@gmail.com>. 
+// Copyright 2019 Vladimir Iftodi <Vladimir.Iftodi@gmail.com>. 
 //
 // Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
 // http://www.apache.org/licenses/LICENSE-2.0> or the MIT license
@@ -7,7 +7,7 @@
 // except according to those terms.
 
 #[repr(u8)]
-#[derive(FromPrimitive,)]
+#[derive(FromPrimitive)]
 pub enum TypeTag {
     Empty = 0,
     BoolFalse = 1,
@@ -33,8 +33,9 @@ pub enum TypeTag {
     Function = 21,
     Ref = 22,
     Lambda = 23,
-    LambdaArg = 24,
-    LambdaArgs = 25,
-    Error = 26,
-    Unknown = 27,
+    LambdaReturn = 24,
+    LambdaArg = 25,
+    LambdaArgReturn = 26,
+    Error = 27,
+    Unknown = 28,
 }

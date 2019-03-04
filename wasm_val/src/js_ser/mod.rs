@@ -1,4 +1,4 @@
-// Copyright 2018 Vladimir Iftodi <Vladimir.Iftodi@gmail.com>. 
+// Copyright 2019 Vladimir Iftodi <Vladimir.Iftodi@gmail.com>. 
 //
 // Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
 // http://www.apache.org/licenses/LICENSE-2.0> or the MIT license
@@ -43,12 +43,34 @@ impl<'a> JsSerializable for &'a str {
     }
 }
 
+impl<'a> JsSerializable for String {
+    fn size(&self) -> u32 { 9 }
+
+    fn ser(&self, cursor: &mut Cursor<Vec<u8>>) -> () {
+        cursor.write_u8(TypeTag::String as u8).unwrap();
+        cursor.write_u32::<LittleEndian>(self.len() as u32).unwrap();
+        cursor.write_u32::<LittleEndian>(self.as_ptr() as u32).unwrap();
+    }
+}
+
 impl JsSerializable for &'static Fn() -> () {
     fn size(&self) -> u32 { 5 }
 
     fn ser(&self, cursor: &mut Cursor<Vec<u8>>) -> () {
-        cursor.write_u8(TypeTag::Lambda as u8).unwrap();
         let id = super::register_callback(*self);
+
+        cursor.write_u8(TypeTag::Lambda as u8).unwrap();
+        cursor.write_u32::<LittleEndian>(id).unwrap();
+    }
+}
+
+impl JsSerializable for &'static Fn() -> (Box<JsSerializable>) {
+    fn size(&self) -> u32 { 5 }
+
+    fn ser(&self, cursor: &mut Cursor<Vec<u8>>) -> () {
+        let id = super::register_callback_ret(*self);
+
+        cursor.write_u8(TypeTag::LambdaReturn as u8).unwrap();
         cursor.write_u32::<LittleEndian>(id).unwrap();
     }
 }
@@ -57,8 +79,20 @@ impl JsSerializable for &'static Fn(JsValue) -> () {
     fn size(&self) -> u32 { 5 }
 
     fn ser(&self, cursor: &mut Cursor<Vec<u8>>) -> () {
-        cursor.write_u8(TypeTag::LambdaArg as u8).unwrap();
         let id = super::register_callback_arg(*self);
+
+        cursor.write_u8(TypeTag::LambdaArg as u8).unwrap();
+        cursor.write_u32::<LittleEndian>(id).unwrap();
+    }
+}
+
+impl JsSerializable for &'static Fn(JsValue) -> (Box<JsSerializable>) {
+    fn size(&self) -> u32 { 5 }
+
+    fn ser(&self, cursor: &mut Cursor<Vec<u8>>) -> () {
+        let id = super::register_callback_ret_arg(*self);
+
+        cursor.write_u8(TypeTag::LambdaArgReturn as u8).unwrap();
         cursor.write_u32::<LittleEndian>(id).unwrap();
     }
 }

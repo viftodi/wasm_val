@@ -1,6 +1,6 @@
 {
   "name": "wasm_val_module",
-  "version": "0.3.4",
+  "version": "0.3.5",
   "description": "Companion package for the rust wasm-val crate",
   "main": "wasm_val_module.js",
   "scripts": {

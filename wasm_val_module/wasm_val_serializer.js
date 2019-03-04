@@ -1,4 +1,4 @@
-// Copyright 2018 Vladimir Iftodi <Vladimir.Iftodi@gmail.com>. 
+// Copyright 2019 Vladimir Iftodi <Vladimir.Iftodi@gmail.com>. 
 //
 // Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
 // http://www.apache.org/licenses/LICENSE-2.0> or the MIT license
@@ -36,10 +36,11 @@ export class Serializer {
             Function: 21,
             Ref: 22,
             Lambda: 23,
-            LambdaArg: 24,
-            LambdaArgs: 25,
-            Error: 26,
-            Unknown: 27, // To be used for sanity checks
+            LambdaReturn: 24,
+            LambdaArg: 25,
+            LambdaArgReturn: 26,
+            Error: 27,
+            Unknown: 28, // To be used for sanity checks
         }
     };
 
@@ -164,8 +165,16 @@ export class Serializer {
         return this.wasmModule.get_rust_lambda_callback(key);
     }
 
+    get_rust_lambda_callback_ret(key) {
+        return this.wasmModule.get_rust_lambda_callback_ret(key);
+    }
+
     get_rust_lambda_callback_arg(key) {
         return this.wasmModule.get_rust_lambda_callback_arg(key);
+    }
+
+    get_rust_lambda_callback_arg_ret(key) {
+        return this.wasmModule.get_rust_lambda_callback_arg_ret(key);
     }
 
     get_size_val(val) {
@@ -349,10 +358,22 @@ export class Serializer {
         return this.get_rust_lambda_callback(key);
     }
 
+    read_lambda_ret(ptrBox) {
+        const key = this.read_u32(ptrBox);
+
+        return this.get_rust_lambda_callback_ret(key);
+    }
+
     read_lambda_arg(ptrBox) {
         const key = this.read_u32(ptrBox);
 
         return this.get_rust_lambda_callback_arg(key);
+    }
+
+    read_lambda_arg_ret(ptrBox) {
+        const key = this.read_u32(ptrBox);
+
+        return this.get_rust_lambda_callback_arg_ret(key);
     }
 
     read_typed_array_i8(ptrBox) {
@@ -452,8 +473,12 @@ export class Serializer {
             ret.val = this.read_u32(ptrBox);
         } else if (tag === this.type_tag.Lambda) {
             ret.val = this.read_lambda(ptrBox);
+        } else if (tag ===this.type_tag.LambdaReturn) {
+            ret.val = this.read_lambda_ret(ptrBox);
         } else if (tag === this.type_tag.LambdaArg) {
             ret.val = this.read_lambda_arg(ptrBox);
+        } else if (tag === this.type_tag.LambdaArgReturn) {
+            ret.val = this.read_lambda_arg_ret(ptrBox);
         } else if (tag === this.type_tag.TypedArrayI8) {
             ret.val = this.read_typed_array_i8(ptrBox);
         } else if (tag === this.type_tag.TypedArrayU8) {

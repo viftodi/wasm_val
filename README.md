@@ -57,13 +57,30 @@ const CLOSURE: &dyn Fn(JsValue) -> () = &|val: JsValue| {
 body.call_method_with_args("addEventListener", &[&"keydown", &CLOSURE]);
 ```
 
-The following types can be send from rust to javascript:
+The following types implement the JsSerializable trait and can be send from rust to javascript:
 
  - boolean
  - primitive numeric types (except i64/u64)
  - str
+ - String
  - JsValue (values obtained from javascript)
  - Fn() -> () and Fn(JSValue) -> () that are useful mostly to register event callbacks
+
+## JsSerializable 
+
+JsSerializable is a trait that is implemented for certain types to allow passing values between rust and wasm.
+
+If you want to pass a closure that returns a value (say for a promise), the return type must be a Box&lt;JsSerializable&gt;
+
+For example:
+
+```rust
+use wasm_val::{JsValue, JsSerializable};
+
+const CLOSURE: &dyn Fn() -> (Box<JsSerializable>) = &|val: JsValue| {
+    return Box::new(42);
+};
+````
 
 ## Examples
 
@@ -77,7 +94,8 @@ There are multiple examples provided in the examples folder :
 
 ## Get started
 
-The project has two parts: wasm_val the rust library that provides the API and wasm_val_module which is the javascript counterpart that does the proper serialization.
+The project has two parts: 
+ wasm_val the rust library that provides the API and wasm_val_module which is the javascript counterpart that allows the interfacing with rust.
 
 ###  On the rust side
 
@@ -91,7 +109,7 @@ Add the wasm_val depencendy to your Cargo.toml
 
 ```toml
 [dependencies]
-wasm_val = "0.3.4"
+wasm_val = "0.3.5"
 ```
 
 It is also important to also declare your rust project type as cdylib.
@@ -135,7 +153,7 @@ Assuming you're in the folder where your web-app resides.
 Firstly either install the wasm_val_module using npm :
 
 ```bash
-npm install wasm_val_module@0.3.4
+npm install wasm_val_module@0.3.5
 
 ```
 

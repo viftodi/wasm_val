@@ -1,4 +1,4 @@
-// Copyright 2018 Vladimir Iftodi <Vladimir.Iftodi@gmail.com>. 
+// Copyright 2019 Vladimir Iftodi <Vladimir.Iftodi@gmail.com>. 
 //
 // Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
 // http://www.apache.org/licenses/LICENSE-2.0> or the MIT license
@@ -15,6 +15,7 @@ const context = {
     number_positive: { get: 999.4214852 },
     empty_string: { get: "" },
     a_string: { get: "Here you go Rust!" },
+    a_rust_string: {},
     an_object: { get: { "hello": "world" } },
 }
 
@@ -78,6 +79,14 @@ export default function setupTestGetThenSet() {
             chai.expect(a_string.set).to.equal(undefined);
             instance.exports.get_and_set_a_string();
             chai.expect(a_string.set).to.equal(a_string.get);
+        });
+
+        it("should properly set a non empty rust String value", function () {
+            const a_string = context.a_rust_string;
+
+            chai.expect(a_string.set).to.equal(undefined);
+            instance.exports.set_a_rust_string();
+            chai.expect(a_string.set).to.equal("Hello");
         });
 
         it("should properly get and set an object value", function () {

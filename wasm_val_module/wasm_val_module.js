@@ -1,4 +1,4 @@
-// Copyright 2018 Vladimir Iftodi <Vladimir.Iftodi@gmail.com>. 
+// Copyright 2019 Vladimir Iftodi <Vladimir.Iftodi@gmail.com>. 
 //
 // Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
 // http://www.apache.org/licenses/LICENSE-2.0> or the MIT license
@@ -20,7 +20,7 @@ export class WasmValModule {
     }
 
     constructor(wasmFile, context, options, ) {
-        this.apiVersion = 7;
+        this.apiVersion = 8;
         this.wasmFile = wasmFile;
         this.options = options || {};
         this.mergeOptions(this.options, WasmValModule.defaultOptions)
@@ -140,12 +140,43 @@ export class WasmValModule {
         };
     }
 
+    get_rust_lambda_callback_ret(key) {
+        const call = this.exports.wasm_val_call_registered_callback_ret;
+        const rust_free = this.exports.wasm_val_rust_free;
+        const readVal = this.read_val.bind(this);
+
+        return function () {
+            const retPtr = call(key);
+            const retVal = readVal(retPtr);
+
+            rust_free(retPtr, 9); // TODO Create constant for 9 (single_val_size)
+
+            return retVal;
+        }
+    }
+
     get_rust_lambda_callback_arg(key) {
         const call = this.exports.wasm_val_call_registered_callback_arg;
         const writeVal = this._write_val.bind(this);
 
         return function (arg) {
             call(key, writeVal(arg));
+        };
+    }
+
+    get_rust_lambda_callback_arg_ret(key) {
+        const call = this.exports.wasm_val_call_registered_callback_arg_ret;
+        const rust_free = this.exports.wasm_val_rust_free;
+        const readVal = this.read_val.bind(this);
+        const writeVal = this._write_val.bind(this);
+
+        return function (arg) {
+            const retPtr = call(key, writeVal(arg));
+            const retVal = readVal(retPtr);
+
+            rust_free(retPtr, 9);
+
+            return retVal;
         };
     }
 
